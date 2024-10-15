@@ -110,6 +110,55 @@ static Future<dynamic> login(String email, String password) async {
     return null; // ส่งคืน null ถ้ามีข้อผิดพลาด
   }
 }
+ static Future<bool> deleteEvent(String eventId, String token) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/events/records/$eventId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print('Error deleting event: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error during deleting event: $e');
+      return false;
+    }
+  }
+
+  // เพิ่มฟังก์ชันแก้ไขกิจกรรม
+  static Future<dynamic> updateEvent(String eventId, String title, String description, DateTime date, String token) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/events/records/$eventId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+          'date': date.toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print('Error updating event: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error during updating event: $e');
+      return null;
+    }
+  }
+
   static Future<void> logout() async {
     // ถ้ามีการจัดการ token หรือ session คุณสามารถทำการลบได้ที่นี่
     // ในกรณีนี้ไม่ต้องทำอะไรกับ API
