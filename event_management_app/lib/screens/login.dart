@@ -14,23 +14,25 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool _isObscure = true;
 
-  void login(BuildContext context) async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณากรอกอีเมลและรหัสผ่าน')));
-      return;
-    }
-
-    final response = await ApiService.login(emailController.text, passwordController.text);
-    if (response != null && response['token'] != null) {
-      String token = response['token'];
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => EventsPage(token: token)),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าสู่ระบบไม่สำเร็จ')));
-    }
+void login(BuildContext context) async {
+  if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณากรอกอีเมลและรหัสผ่าน')));
+    return;
   }
+
+  final response = await ApiService.login(emailController.text, passwordController.text);
+  if (response != null && response['token'] != null) {
+    String token = response['token'];
+    bool isAdmin = response['record']['isAdmin']; // Get admin status from response
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => EventsPage(token: token, isAdmin: isAdmin)),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าสู่ระบบไม่สำเร็จ')));
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

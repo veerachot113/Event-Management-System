@@ -2,18 +2,13 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static Future<void> saveToken(String token) async {
+  static Future<Map<String, dynamic>?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
-  }
-
-  static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
-  }
-
-  static Future<void> clearToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    String? token = prefs.getString('token');
+    bool isAdmin = prefs.getBool('isAdmin') ?? false; // Retrieve admin status
+    if (token != null) {
+      return {'token': token, 'isAdmin': isAdmin};
+    }
+    return null; // Return null if no token
   }
 }

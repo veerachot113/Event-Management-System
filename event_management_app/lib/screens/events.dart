@@ -1,16 +1,17 @@
-// events.dart
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'add_event.dart';
 import '../models/event.dart';
+import 'login.dart';
 
 class EventsPage extends StatelessWidget {
-  final String token; // เพิ่มตัวแปร token
+  final String token;
+  final bool isAdmin;
 
-  EventsPage({required this.token}); // อัปเดต constructor เพื่อรับ token
+  EventsPage({required this.token, required this.isAdmin});
 
   Future<List<Event>> fetchEvents() async {
-    return await ApiService.getEvents(); // เรียกใช้ฟังก์ชันที่โหลดกิจกรรม
+    return await ApiService.getEvents();
   }
 
   @override
@@ -18,6 +19,18 @@ class EventsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('รายการกิจกรรม'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              // Implement your logout logic here
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Event>>(
         future: fetchEvents(),
@@ -43,15 +56,17 @@ class EventsPage extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddEventPage(token: token)), // ส่ง token ไปยัง AddEventPage
-          );
-        },
-        child: Icon(Icons.add),
-      ),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddEventPage(token: token)),
+                );
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

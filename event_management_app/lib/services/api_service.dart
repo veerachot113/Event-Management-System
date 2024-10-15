@@ -1,6 +1,7 @@
 // api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/event.dart';
 
 class ApiService {
@@ -30,24 +31,30 @@ class ApiService {
     }
   }
 
-  // Function to login a user
-  static Future<dynamic> login(String email, String password) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/users/auth-with-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'identity': email, 'password': password}),
-      );
+// api_service.dart (within the login method)
+static Future<dynamic> login(String email, String password) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/users/auth-with-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'identity': email, 'password': password}),
+    );
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        return json.decode(response.body)['message'] ?? 'Login error';
-      }
-    } catch (e) {
-      return 'Connection error: $e';
+    if (response.statusCode == 200) {
+      var userData = json.decode(response.body);
+      // Store token and admin status in SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', userData['token']);
+      await prefs.setBool('isAdmin', userData['record']['isAdmin']); // Save isAdmin status
+      return userData;
+    } else {
+      return json.decode(response.body)['message'] ?? 'Login error';
     }
+  } catch (e) {
+    return 'Connection error: $e';
   }
+}
+
 
   // Function to fetch events
   static Future<List<Event>> getEvents() async {
@@ -103,5 +110,10 @@ class ApiService {
     return null; // ส่งคืน null ถ้ามีข้อผิดพลาด
   }
 }
-
+  static Future<void> logout() async {
+    // ถ้ามีการจัดการ token หรือ session คุณสามารถทำการลบได้ที่นี่
+    // ในกรณีนี้ไม่ต้องทำอะไรกับ API
+  }
 }
+
+

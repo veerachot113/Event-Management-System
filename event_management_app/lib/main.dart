@@ -17,15 +17,17 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: FutureBuilder<String?>(
-        future: AuthService.getToken(),
+      home: FutureBuilder<Map<String, dynamic>?>(
+        future: AuthService.getUserData(), // Update this to get user data including admin status
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasData && snapshot.data != null) {
-            return EventsPage(token: snapshot.data!); // ถ้ามี token ให้ไปยังหน้า Events
+            String token = snapshot.data!['token'];
+            bool isAdmin = snapshot.data!['isAdmin']; // Extract the isAdmin status
+            return EventsPage(token: token, isAdmin: isAdmin); // Pass token and isAdmin status
           } else {
-            return LoginPage(); // ไม่มี token ให้ไปยังหน้า Login
+            return LoginPage(); // Navigate to login if no user data
           }
         },
       ),
