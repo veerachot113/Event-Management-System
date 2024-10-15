@@ -4,5 +4,9 @@ class User {
   final String email;
   final bool isAdmin;
 
-  User({required this.id, required this.email, required this.isAdmin});
+  User({
+    required this.id,
+    required this.email,
+    required this.isAdmin,
+  });
 }

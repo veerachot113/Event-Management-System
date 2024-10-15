@@ -6,5 +6,11 @@ class Event {
   final DateTime date;
   final String createdBy;
 
-  Event({required this.id, required this.title, required this.description, required this.date, required this.createdBy});
+  Event({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.date,
+    required this.createdBy,
+  });
 }

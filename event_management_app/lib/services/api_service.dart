@@ -74,33 +74,34 @@ class ApiService {
     }
   }
 
-static Future<dynamic> addEvent(String title, String description, DateTime date, String token) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/events/records'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Use token passed from AddEventPage
-        },
-        body: jsonEncode({
-          'title': title,
-          'description': description,
-          'date': date.toIso8601String(),
-          'createdBy': 'ui5ldqnmu1qt3es', // Replace with actual admin ID
-        }),
-      );
+  // Function to add an event
+ static Future<dynamic> addEvent(String title, String description, DateTime date, String token) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/events/records'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // ใช้ token ที่ส่งเข้ามา
+      },
+      body: jsonEncode({
+        'title': title,
+        'description': description,
+        'date': date.toIso8601String(),
+        'createdBy': 'ui5ldqnmu1qt3es', // แทนที่ด้วย ID ของผู้ดูแลระบบ
+      }),
+    );
 
-      if (response.statusCode == 201) {
-        return json.decode(response.body);
-      } else {
-        print('Error adding event: ${response.body}');
-        return null; // Return null if there was an error
-      }
-    } catch (e) {
-      print('Error during adding event: $e');
-      return null;
+    if (response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      // แสดงข้อผิดพลาดที่ตอบกลับจาก API
+      print('Error adding event: ${response.body}');
+      return json.decode(response.body); // แสดงข้อผิดพลาด
     }
+  } catch (e) {
+    print('Error during adding event: $e');
+    return null; // ส่งคืน null ถ้ามีข้อผิดพลาด
+  }
 }
-
 
 }

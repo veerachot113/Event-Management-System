@@ -1,12 +1,14 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
+import 'screens/events.dart';
+import 'services/auth_service.dart';
 
 void main() {
-  runApp(EventManagementApp());
+  runApp(MyApp());
 }
 
-class EventManagementApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,7 +17,18 @@ class EventManagementApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: FutureBuilder<String?>(
+        future: AuthService.getToken(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData && snapshot.data != null) {
+            return EventsPage(token: snapshot.data!); // ถ้ามี token ให้ไปยังหน้า Events
+          } else {
+            return LoginPage(); // ไม่มี token ให้ไปยังหน้า Login
+          }
+        },
+      ),
     );
   }
 }

@@ -9,10 +9,9 @@ class EventsPage extends StatelessWidget {
 
   EventsPage({required this.token}); // อัปเดต constructor เพื่อรับ token
 
-Future<List<Event>> fetchEvents() async {
-  return await ApiService.getEvents(); // เรียกใช้ฟังก์ชันที่โหลดกิจกรรม
-}
-
+  Future<List<Event>> fetchEvents() async {
+    return await ApiService.getEvents(); // เรียกใช้ฟังก์ชันที่โหลดกิจกรรม
+  }
 
   @override
   Widget build(BuildContext context) {

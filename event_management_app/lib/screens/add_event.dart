@@ -1,4 +1,6 @@
 // add_event.dart
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -31,6 +33,13 @@ void addEvent(BuildContext context) async {
     selectedTime!.minute,
   );
 
+  print('Event Data: ${jsonEncode({
+    'title': titleController.text,
+    'description': descriptionController.text,
+    'date': eventDateTime.toIso8601String(),
+    'createdBy': 'ui5ldqnmu1qt3es', // ใช้ ID ของผู้ดูแลระบบ
+  })}');
+
   final response = await ApiService.addEvent(
     titleController.text,
     descriptionController.text,
@@ -38,9 +47,7 @@ void addEvent(BuildContext context) async {
     widget.token,
   );
 
-  // ตรวจสอบการตอบกลับจาก API
   if (response != null) {
-    // แสดง Snackbar หรือ dialog เพื่อยืนยันการเพิ่มกิจกรรม
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ: ${response['title']}')));
     Navigator.pop(context); // กลับไปยังหน้า Events
   } else {
@@ -48,6 +55,7 @@ void addEvent(BuildContext context) async {
     print('Error: เพิ่มกิจกรรมไม่สำเร็จ');
   }
 }
+
 
 
   Future<void> _selectDate(BuildContext context) async {
