@@ -1,13 +1,13 @@
 // add_event.dart
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../models/event.dart';
 
 class AddEventPage extends StatefulWidget {
-  final String token; // เพิ่มตัวแปร token
+  final String token;
+  final Function(Event) onEventAdded; // Callback สำหรับเมื่อเพิ่มกิจกรรมสำเร็จ
 
-  AddEventPage({required this.token}); // อัปเดต constructor เพื่อรับ token
+  AddEventPage({required this.token, required this.onEventAdded}); // อัปเดต constructor
 
   @override
   _AddEventPageState createState() => _AddEventPageState();
@@ -19,43 +19,47 @@ class _AddEventPageState extends State<AddEventPage> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
-void addEvent(BuildContext context) async {
-  if (selectedDate == null || selectedTime == null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันและเวลา')));
-    return;
+  void addEvent(BuildContext context) async {
+    if (selectedDate == null || selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันและเวลา')));
+      return;
+    }
+
+    DateTime eventDateTime = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      selectedTime!.hour,
+      selectedTime!.minute,
+    );
+
+    final response = await ApiService.addEvent(
+      titleController.text,
+      descriptionController.text,
+      eventDateTime,
+      widget.token,
+    );
+
+    if (response != null) {
+      // สร้าง Event ใหม่จากการตอบกลับ
+      Event newEvent = Event(
+        id: response['id'], // ใช้ ID ที่ส่งกลับจาก API
+        title: response['title'],
+        description: response['description'],
+        date: DateTime.parse(response['date']),
+        createdBy: response['createdBy'],
+      );
+
+      // เรียกใช้ callback เพื่อเพิ่มกิจกรรมในหน้าก่อนหน้า
+      widget.onEventAdded(newEvent);
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ: ${response['title']}')));
+      Navigator.pop(context); // กลับไปยังหน้า Events
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมไม่สำเร็จ')));
+      print('Error: เพิ่มกิจกรรมไม่สำเร็จ');
+    }
   }
-
-  DateTime eventDateTime = DateTime(
-    selectedDate!.year,
-    selectedDate!.month,
-    selectedDate!.day,
-    selectedTime!.hour,
-    selectedTime!.minute,
-  );
-
-  print('Event Data: ${jsonEncode({
-    'title': titleController.text,
-    'description': descriptionController.text,
-    'date': eventDateTime.toIso8601String(),
-    'createdBy': 'ui5ldqnmu1qt3es', // ใช้ ID ของผู้ดูแลระบบ
-  })}');
-
-  final response = await ApiService.addEvent(
-    titleController.text,
-    descriptionController.text,
-    eventDateTime,
-    widget.token,
-  );
-
-  if (response != null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ: ${response['title']}')));
-    Navigator.pop(context); // กลับไปยังหน้า Events
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมไม่สำเร็จ')));
-    print('Error: เพิ่มกิจกรรมไม่สำเร็จ');
-  }
-}
-
 
 
   Future<void> _selectDate(BuildContext context) async {

@@ -1,17 +1,53 @@
+// events.dart
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'add_event.dart';
 import '../models/event.dart';
 import 'login.dart';
 
-class EventsPage extends StatelessWidget {
+class EventsPage extends StatefulWidget {
   final String token;
   final bool isAdmin;
 
   EventsPage({required this.token, required this.isAdmin});
 
-  Future<List<Event>> fetchEvents() async {
-    return await ApiService.getEvents();
+  @override
+  _EventsPageState createState() => _EventsPageState();
+}
+
+class _EventsPageState extends State<EventsPage> {
+  List<Event> events = []; // ใช้ List เพื่อเก็บกิจกรรม
+  bool isLoading = true; // ใช้ตัวแปรเพื่อติดตามสถานะการโหลด
+
+  @override
+  void initState() {
+    super.initState();
+    fetchEvents(); // เรียกใช้ฟังก์ชันเพื่อโหลดกิจกรรมเมื่อเริ่มต้น
+  }
+
+  Future<void> fetchEvents() async {
+    setState(() {
+      isLoading = true; // เริ่มการโหลด
+    });
+
+    try {
+      final fetchedEvents = await ApiService.getEvents(); // โหลดกิจกรรม
+      setState(() {
+        events = fetchedEvents; // อัปเดตรายการกิจกรรม
+        isLoading = false; // สิ้นสุดการโหลด
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false; // สิ้นสุดการโหลดแม้เกิดข้อผิดพลาด
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching events: $error')));
+    }
+  }
+
+  void onEventAdded(Event newEvent) {
+    setState(() {
+      events.add(newEvent); // เพิ่มกิจกรรมใหม่ในรายการ
+    });
   }
 
   @override
@@ -23,7 +59,6 @@ class EventsPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () {
-              // Implement your logout logic here
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
@@ -32,16 +67,9 @@ class EventsPage extends StatelessWidget {
           ),
         ],
       ),
-      body: FutureBuilder<List<Event>>(
-        future: fetchEvents(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
-          } else {
-            final events = snapshot.data ?? [];
-            return ListView.builder(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
               itemCount: events.length,
               itemBuilder: (context, index) {
                 return ListTile(
@@ -52,16 +80,18 @@ class EventsPage extends StatelessWidget {
                   },
                 );
               },
-            );
-          }
-        },
-      ),
-      floatingActionButton: isAdmin
+            ),
+      floatingActionButton: widget.isAdmin
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddEventPage(token: token)),
+                  MaterialPageRoute(
+                    builder: (context) => AddEventPage(
+                      token: widget.token,
+                      onEventAdded: onEventAdded, // ส่ง callback
+                    ),
+                  ),
                 );
               },
               child: Icon(Icons.add),
@@ -70,3 +100,7 @@ class EventsPage extends StatelessWidget {
     );
   }
 }
+
+
+
+
