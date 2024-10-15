@@ -163,52 +163,6 @@ static Future<dynamic> login(String email, String password) async {
     // ถ้ามีการจัดการ token หรือ session คุณสามารถทำการลบได้ที่นี่
     // ในกรณีนี้ไม่ต้องทำอะไรกับ API
   }
-// services/api_service.dart
-
-// ฟังก์ชันเข้าร่วมกิจกรรม
-static Future<bool> joinEvent(String eventId, String userId, String token) async {
-  try {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/events/records/$eventId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'participants': {'\$add': [userId]}, // ใช้การเพิ่มสมาชิกใน array
-      }),
-    );
-
-    return response.statusCode == 200; // ถ้าสำเร็จให้คืนค่า true
-  } catch (e) {
-    print('Error joining event: $e');
-    return false; // คืนค่า false ถ้าเกิดข้อผิดพลาด
-  }
-}
-
-// ฟังก์ชันยกเลิกการเข้าร่วมกิจกรรม
-static Future<bool> leaveEvent(String eventId, String userId, String token) async {
-  try {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/events/records/$eventId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'participants': {'\$remove': [userId]}, // ใช้การลบสมาชิกใน array
-      }),
-    );
-
-    return response.statusCode == 200; // ถ้าสำเร็จให้คืนค่า true
-  } catch (e) {
-    print('Error leaving event: $e');
-    return false; // คืนค่า false ถ้าเกิดข้อผิดพลาด
-  }
-}
-
-
-
 }
 
 

@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           } else if (snapshot.hasData && snapshot.data != null) {
             String token = snapshot.data!['token'];
             bool isAdmin = snapshot.data!['isAdmin']; // Extract the isAdmin status
-            return EventsPage(token: token, isAdmin: isAdmin, userId: '',); // Pass token and isAdmin status
+            return EventsPage(token: token, isAdmin: isAdmin); // Pass token and isAdmin status
           } else {
             return LoginPage(); // Navigate to login if no user data
           }

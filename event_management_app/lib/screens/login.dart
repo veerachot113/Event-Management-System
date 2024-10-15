@@ -20,17 +20,15 @@ void login(BuildContext context) async {
     return;
   }
 
-final response = await ApiService.login(emailController.text, passwordController.text);
-if (response != null && response['token'] != null) {
-  String token = response['token'];
-  bool isAdmin = response['record']['isAdmin'];
-  String userId = response['record']['id']; // ดึง userId
-  
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => EventsPage(token: token, isAdmin: isAdmin, userId: userId)),
-  );
-} else {
+  final response = await ApiService.login(emailController.text, passwordController.text);
+  if (response != null && response['token'] != null) {
+    String token = response['token'];
+    bool isAdmin = response['record']['isAdmin']; // Get admin status from response
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => EventsPage(token: token, isAdmin: isAdmin)),
+    );
+  } else {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าสู่ระบบไม่สำเร็จ')));
   }
 }

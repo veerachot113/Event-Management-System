@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
-import '../models/event.dart';
 import 'add_event.dart';
-import 'edit_event.dart';
+import 'edit_event.dart'; // เพิ่มการ import หน้าแก้ไขกิจกรรม
+import '../models/event.dart';
 import 'login.dart';
 
 class EventsPage extends StatefulWidget {
   final String token;
   final bool isAdmin;
-  final String userId; // เพิ่ม userId
 
-  EventsPage({required this.token, required this.isAdmin, required this.userId}); // อัปเดต constructor
+  EventsPage({required this.token, required this.isAdmin});
 
   @override
   _EventsPageState createState() => _EventsPageState();
@@ -72,97 +71,104 @@ class _EventsPageState extends State<EventsPage> {
     }
   }
 
-  void joinOrLeaveEvent(int index) async {
-    bool alreadyJoined = events[index].participants.contains(widget.userId);
-    
-    if (alreadyJoined) {
-      // ทำการยกเลิกการเข้าร่วม
-      bool success = await ApiService.leaveEvent(events[index].id, widget.userId, widget.token);
-      if (success) {
-        setState(() {
-          events[index].participants.remove(widget.userId);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ยกเลิกการเข้าร่วมกิจกรรม')));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถยกเลิกการเข้าร่วมกิจกรรมได้')));
-      }
-    } else {
-      // ทำการเข้าร่วมกิจกรรม
-      bool success = await ApiService.joinEvent(events[index].id, widget.userId, widget.token);
-      if (success) {
-        setState(() {
-          events[index].participants.add(widget.userId);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าร่วมกิจกรรมเรียบร้อย')));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถเข้าร่วมกิจกรรมได้')));
-      }
-    }
-  }
-
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('รายการกิจกรรม'),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.logout),
-          onPressed: () {
-            // ฟังก์ชันออกจากระบบ
-          },
-        ),
-      ],
-    ),
-    body: isLoading
-        ? Center(child: CircularProgressIndicator())
-        : ListView.builder(
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              bool alreadyJoined = events[index].participants.contains(widget.userId); // เช็คว่าผู้ใช้เข้าร่วมกิจกรรมหรือไม่
-              return ListTile(
-                title: Text(events[index].title),
-                subtitle: Text(events[index].description),
-                trailing: ElevatedButton(
-                  onPressed: () async {
-                    bool success;
-                    if (alreadyJoined) {
-                      // หากผู้ใช้เข้าร่วมอยู่แล้ว
-                      success = await ApiService.leaveEvent(events[index].id, widget.userId, widget.token);
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ยกเลิกการเข้าร่วมกิจกรรม')));
-                      }
-                    } else {
-                      // หากผู้ใช้ยังไม่ได้เข้าร่วม
-                      success = await ApiService.joinEvent(events[index].id, widget.userId, widget.token);
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าร่วมกิจกรรมเรียบร้อย')));
-                      }
-                    }
-                    setState(() {
-                      // อัปเดตสถานะการเข้าร่วมใน UI
-                      if (success) {
-                        if (alreadyJoined) {
-                          events[index].participants.remove(widget.userId);
-                        } else {
-                          events[index].participants.add(widget.userId);
-                        }
-                      }
-                    });
-                  },
-                  child: Text(alreadyJoined ? 'ยกเลิก' : 'เข้าร่วม'), // ปรับปุ่มตามสถานะ
-                ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('รายการกิจกรรม'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
               );
             },
           ),
-    floatingActionButton: widget.isAdmin
-        ? FloatingActionButton(
-            onPressed: () {
-              // ฟังก์ชันเพิ่มกิจกรรม
-            },
-            child: Icon(Icons.add),
-          )
-        : null,
-  );
-}
+        ],
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: events.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(events[index].title),
+                  subtitle: Text(events[index].description),
+                  trailing: widget.isAdmin
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditEventPage(
+                                      event: events[index],
+                                      token: widget.token,
+                                      onEventUpdated: onEventUpdated,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('ยืนยันการลบ'),
+                                      content: Text('คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?'),
+                                      actions: [
+                                        TextButton(
+                                          child: Text('ยกเลิก'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: Text('ลบ'),
+                                          onPressed: () {
+                                            deleteEvent(events[index].id);
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        )
+                      : null,
+                  onTap: () {
+                    // ฟังก์ชันเข้าร่วมกิจกรรมหรือยกเลิก
+                  },
+                );
+              },
+            ),
+      floatingActionButton: widget.isAdmin
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddEventPage(
+                      token: widget.token,
+                      onEventAdded: onEventAdded,
+                    ),
+                  ),
+                );
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
+    );
+  }
 }
