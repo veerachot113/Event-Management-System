@@ -64,14 +64,8 @@ static Future<dynamic> login(String email, String password) async {
   }
 
   // ฟังก์ชันเพิ่มกิจกรรม
-  static Future<dynamic> addEvent(
-    String title,
-    String description,
-    DateTime date,
-    String token,
-    Uint8List? imageData,
-    String? imageName,
-  ) async {
+  // ฟังก์ชันสำหรับเพิ่มและแก้ไขกิจกรรมควรรองรับ startDate และ endDate ด้วย
+  static Future<dynamic> addEvent(String title, String description, DateTime startDate, DateTime endDate, String token, Uint8List? imageData, String? imageName) async {
     try {
       var request = http.MultipartRequest(
         'POST',
@@ -80,8 +74,8 @@ static Future<dynamic> login(String email, String password) async {
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['title'] = title;
       request.fields['description'] = description;
-      request.fields['date'] = date.toIso8601String();
-      request.fields['createdBy'] = 'ui5ldqnmu1qt3es'; // แทนที่ด้วย ID ผู้ใช้จริง
+      request.fields['startDate'] = startDate.toIso8601String();
+      request.fields['endDate'] = endDate.toIso8601String();
 
       if (imageData != null && imageName != null) {
         request.files.add(
@@ -91,100 +85,101 @@ static Future<dynamic> login(String email, String password) async {
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-
-      print('Response status code: ${response.statusCode}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return json.decode(response.body);
       } else {
-        print('Error adding event: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error during adding event: $e');
       return null;
     }
   }
+
 
   // ฟังก์ชันแก้ไขกิจกรรม
-  static Future<dynamic> updateEvent(
-    String eventId,
-    String title,
-    String description,
-    DateTime date,
-    String token,
-    Uint8List? imageData, // รับข้อมูลรูปภาพ
-    String? imageName,    // รับชื่อไฟล์รูปภาพ
-  ) async {
-    try {
-      var request = http.MultipartRequest(
-        'PATCH',
-        Uri.parse('$baseUrl/events/records/$eventId'),
+static Future<dynamic> updateEvent(
+  String eventId,
+  String title,
+  String description,
+  DateTime date,
+  String token,
+  Uint8List? imageData, // รับข้อมูลรูปภาพ
+  String? imageName, String? pickedImageName // รับชื่อไฟล์รูปภาพ
+) async {
+  try {
+    var request = http.MultipartRequest(
+      'PATCH',
+      Uri.parse('$baseUrl/events/records/$eventId'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.fields['title'] = title;
+    request.fields['description'] = description;
+    request.fields['date'] = date.toIso8601String();
+
+    if (imageData != null && imageName != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes('image', imageData, filename: imageName),
       );
-      request.headers['Authorization'] = 'Bearer $token';
-      request.fields['title'] = title;
-      request.fields['description'] = description;
-      request.fields['date'] = date.toIso8601String();
+    }
 
-      if (imageData != null && imageName != null) {
-        request.files.add(
-          http.MultipartFile.fromBytes('image', imageData, filename: imageName),
-        );
-      }
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
 
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        print('Error updating event: ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      print('Error during updating event: $e');
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      print('Error updating event: ${response.body}');
       return null;
     }
+  } catch (e) {
+    print('Error during updating event: $e');
+    return null;
   }
+}
+
 
   // ฟังก์ชันดึงข้อมูลกิจกรรม
 // services/api_service.dart
 // services/api_service.dart
 // services/api_service.dart
-static Future<List<Event>> getEvents(String userId) async {
-  try {
-    final response = await http.get(Uri.parse('$baseUrl/events/records'));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['items'] is List) {
-        return (data['items'] as List).map((event) {
-          List<dynamic> participants = event['participants'] ?? [];
-          bool isJoined = participants.contains(userId);
+  static Future<List<Event>> getEvents(String userId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/events/records'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['items'] is List) {
+          return (data['items'] as List).map((event) {
+            List<dynamic> participants = event['participants'] ?? [];
+            bool isJoined = participants.contains(userId);
 
-          return Event(
-            id: event['id'],
-            title: event['title'],
-            description: event['description'],
-            date: DateTime.parse(event['date']),
-            createdBy: event['createdBy'],
-            imageUrl: event['image'] != null
-                ? 'http://127.0.0.1:8090/api/files/events/${event['id']}/${event['image']}'
-                : null,
-            participantCount: participants.length,
-            isJoined: isJoined,
-            participants: participants.cast<String>(), // เก็บ ID หรือชื่อผู้เข้าร่วม
-          );
-        }).toList();
+            return Event(
+              id: event['id'],
+              title: event['title'],
+              description: event['description'],
+              startDate: DateTime.parse(event['startDate']), // วันเริ่มต้น
+              endDate: DateTime.parse(event['endDate']),     // วันสิ้นสุด
+              createdBy: event['createdBy'],
+              imageUrl: event['image'] != null
+                  ? 'http://127.0.0.1:8090/api/files/events/${event['id']}/${event['image']}'
+                  : null,
+              participantCount: participants.length,
+              isJoined: isJoined,
+              participants: participants.cast<String>(),
+            );
+          }).toList();
+        } else {
+          throw Exception('Expected a list but got: $data');
+        }
       } else {
-        throw Exception('Expected a list but got: $data');
+        throw Exception('Failed to load events: ${response.body}');
       }
-    } else {
-      throw Exception('Failed to load events: ${response.body}');
+    } catch (e) {
+      throw Exception('Failed to load events');
     }
-  } catch (e) {
-    throw Exception('Failed to load events');
   }
-}
+
+
 
 
 

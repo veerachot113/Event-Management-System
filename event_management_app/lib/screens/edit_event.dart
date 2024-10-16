@@ -19,8 +19,8 @@ class EditEventPage extends StatefulWidget {
 class _EditEventPageState extends State<EditEventPage> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
-  DateTime? selectedDate;
-  TimeOfDay? selectedTime;
+  DateTime? selectedStartDate;
+  DateTime? selectedEndDate;
   Uint8List? _imageData;
   String? _imageName;
   String? existingImageUrl;
@@ -30,8 +30,8 @@ class _EditEventPageState extends State<EditEventPage> {
     super.initState();
     titleController.text = widget.event.title;
     descriptionController.text = widget.event.description;
-    selectedDate = widget.event.date;
-    selectedTime = TimeOfDay.fromDateTime(widget.event.date);
+    selectedStartDate = widget.event.startDate;
+    selectedEndDate = widget.event.endDate;
     existingImageUrl = widget.event.imageUrl;
   }
 
@@ -50,27 +50,25 @@ class _EditEventPageState extends State<EditEventPage> {
   }
 
   void updateEvent(BuildContext context) async {
-    if (selectedDate == null || selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันและเวลา')));
+    if (selectedStartDate == null || selectedEndDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้นและสิ้นสุด')));
       return;
     }
 
-    DateTime eventDateTime = DateTime(
-      selectedDate!.year,
-      selectedDate!.month,
-      selectedDate!.day,
-      selectedTime!.hour,
-      selectedTime!.minute,
-    );
+    if (selectedStartDate!.isAfter(selectedEndDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('วันเริ่มต้นต้องไม่หลังวันสิ้นสุด')));
+      return;
+    }
 
     final response = await ApiService.updateEvent(
       widget.event.id,
       titleController.text,
       descriptionController.text,
-      eventDateTime,
-      widget.token,
-      _imageData, // ส่งข้อมูลรูปภาพ
-      _imageName, // ส่งชื่อไฟล์รูปภาพ
+      selectedStartDate!,
+      selectedEndDate! as String,
+      widget.token as Uint8List?,
+      _imageData as String?,
+      _imageName,
     );
 
     if (response != null && response is Map<String, dynamic>) {
@@ -78,13 +76,14 @@ class _EditEventPageState extends State<EditEventPage> {
         id: widget.event.id,
         title: response['title'],
         description: response['description'],
-        date: DateTime.parse(response['date']),
+        startDate: DateTime.parse(response['startDate']),
+        endDate: DateTime.parse(response['endDate']),
         createdBy: response['createdBy'],
         imageUrl: response['image'] != null
             ? 'http://127.0.0.1:8090/api/files/events/${response['id']}/${response['image']}'
             : null,
         participantCount: response['participantCount'] ?? widget.event.participantCount,
-        isJoined: widget.event.isJoined, // หรือปรับตามการตอบกลับจาก API
+        isJoined: widget.event.isJoined,
       );
 
       widget.onEventUpdated(updatedEvent);
@@ -96,30 +95,32 @@ class _EditEventPageState extends State<EditEventPage> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: selectedStartDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null && picked != selectedStartDate) {
       setState(() {
-        selectedDate = picked;
+        selectedStartDate = picked;
       });
     }
   }
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
+  Future<void> _selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialTime: selectedTime ?? TimeOfDay.now(),
+      initialDate: selectedEndDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != selectedTime) {
+    if (picked != null && picked != selectedEndDate) {
       setState(() {
-        selectedTime = picked;
+        selectedEndDate = picked;
       });
     }
   }
@@ -132,7 +133,7 @@ class _EditEventPageState extends State<EditEventPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // รองรับการเลื่อนถ้าจำเป็น
+        child: SingleChildScrollView(
           child: Column(
             children: [
               TextField(
@@ -145,42 +146,34 @@ class _EditEventPageState extends State<EditEventPage> {
                 decoration: InputDecoration(labelText: 'รายละเอียดกิจกรรม', border: OutlineInputBorder()),
               ),
               SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _selectDate(context),
-                      child: AbsorbPointer(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: selectedDate != null
-                                ? 'เลือกวันที่: ${selectedDate!.toLocal().toString().split(' ')[0]}'
-                                : 'เลือกวันที่',
-                            border: OutlineInputBorder(),
-                            suffixIcon: Icon(Icons.calendar_today),
-                          ),
-                        ),
-                      ),
+              GestureDetector(
+                onTap: () => _selectStartDate(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: selectedStartDate != null
+                          ? 'เลือกวันเริ่มต้น: ${selectedStartDate!.toLocal().toString().split(' ')[0]}'
+                          : 'เลือกวันเริ่มต้น',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
                     ),
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _selectTime(context),
-                      child: AbsorbPointer(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: selectedTime != null
-                                ? 'เลือกเวลา: ${selectedTime!.format(context)}'
-                                : 'เลือกเวลา',
-                            border: OutlineInputBorder(),
-                            suffixIcon: Icon(Icons.access_time),
-                          ),
-                        ),
-                      ),
+                ),
+              ),
+              SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectEndDate(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: selectedEndDate != null
+                          ? 'เลือกวันสิ้นสุด: ${selectedEndDate!.toLocal().toString().split(' ')[0]}'
+                          : 'เลือกวันสิ้นสุด',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
                     ),
                   ),
-                ],
+                ),
               ),
               SizedBox(height: 16),
               _imageData != null

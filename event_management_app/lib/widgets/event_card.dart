@@ -4,6 +4,7 @@ import 'package:event_management_app/screens/event_detail.dart';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 
+
 class EventCard extends StatelessWidget {
   final Event event;
   final bool isAdmin;

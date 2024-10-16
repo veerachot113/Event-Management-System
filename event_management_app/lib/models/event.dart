@@ -3,22 +3,26 @@ class Event {
   final String id;
   final String title;
   final String description;
-  final DateTime date;
+  final DateTime startDate; // เพิ่มฟิลด์วันเริ่มต้น
+  final DateTime endDate;   // เพิ่มฟิลด์วันสิ้นสุด
   final String createdBy;
   final String? imageUrl;
-  final int participantCount;
-  final bool isJoined;
-  final List<String> participants; // เพิ่มฟิลด์นี้เพื่อเก็บชื่อหรือ ID ของผู้เข้าร่วม
+  late final int participantCount;
+  late final bool isJoined;
+  final List<String> participants;
 
   Event({
     required this.id,
     required this.title,
     required this.description,
-    required this.date,
+    required this.startDate, // ใช้วันเริ่มต้น
+    required this.endDate,   // ใช้วันสิ้นสุด
     required this.createdBy,
     this.imageUrl,
     this.participantCount = 0,
     this.isJoined = false,
-    this.participants = const [], // เริ่มต้นเป็นลิสต์ว่าง
+    this.participants = const [],
   });
+
+  get date => null;
 }

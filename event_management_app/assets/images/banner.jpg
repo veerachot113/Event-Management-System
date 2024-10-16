@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#63b3ed;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="200" fill="url(#grad)"/>
+  <text x="400" y="60" font-family="Arial, sans-serif" font-size="32" fill="white" text-anchor="middle">โปรเจคเพิ่มกิจกรรม</text>
+  <text x="400" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">สร้างสรรค์ประสบการณ์ใหม่ เพิ่มคุณค่าชีวิต</text>
+  
+  <!-- Icons representing different activities -->
+  <circle cx="200" cy="150" r="25" fill="#f9a825"/>
+  <text x="200" y="158" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle">🏃</text>
+  
+  <circle cx="300" cy="150" r="25" fill="#66bb6a"/>
+  <text x="300" y="158" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle">🎨</text>
+  
+  <circle cx="400" cy="150" r="25" fill="#ef5350"/>
+  <text x="400" y="158" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle">🎵</text>
+  
+  <circle cx="500" cy="150" r="25" fill="#ab47bc"/>
+  <text x="500" y="158" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle">📚</text>
+  
+  <circle cx="600" cy="150" r="25" fill="#fdd835"/>
+  <text x="600" y="158" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle">🏊</text>
+</svg>

@@ -25,6 +25,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     super.initState();
     event = widget.event;
     _checkAdminStatus();
+    _refreshEvent(); // อัปเดตข้อมูลทันทีที่หน้าโหลด
   }
 
   Future<void> _checkAdminStatus() async {
@@ -38,11 +39,28 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _refreshEvent() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('userId');
-    if (userId != null) {
+    String? token = prefs.getString('token');
+
+    if (userId != null && token != null) {
       List<Event> updatedEvents = await ApiService.getEvents(userId);
       Event? updatedEvent = updatedEvents.firstWhere((e) => e.id == event.id, orElse: () => event);
+
+      // อัปเดตสถานะการเข้าร่วม
+      bool isJoined = updatedEvent.participants.contains(userId);
+
       setState(() {
-        event = updatedEvent;
+        event = Event(
+          id: updatedEvent.id,
+          title: updatedEvent.title,
+          description: updatedEvent.description,
+          startDate: updatedEvent.startDate,
+          endDate: updatedEvent.endDate,
+          createdBy: updatedEvent.createdBy,
+          imageUrl: updatedEvent.imageUrl,
+          participantCount: updatedEvent.participantCount,
+          isJoined: isJoined, // ใช้ข้อมูลล่าสุด
+          participants: updatedEvent.participants,
+        );
       });
     }
   }
@@ -54,7 +72,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
-    String? userId = prefs.getString('userId'); // ตรวจสอบว่าบันทึก userId แล้ว
+    String? userId = prefs.getString('userId'); 
 
     if (token == null || userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
@@ -67,16 +85,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
     String? error = await ApiService.joinEvent(event.id, userId, token);
     if (error == null) {
       setState(() {
-        event = Event(
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          createdBy: event.createdBy,
-          imageUrl: event.imageUrl,
-          participantCount: event.participantCount + 1,
-          isJoined: true,
-        );
+        event.participantCount += 1;
+        event.isJoined = true;
         isLoading = false;
       });
       widget.onEventUpdated(event);
@@ -109,16 +119,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
     String? error = await ApiService.cancelJoinEvent(event.id, userId, token);
     if (error == null) {
       setState(() {
-        event = Event(
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          createdBy: event.createdBy,
-          imageUrl: event.imageUrl,
-          participantCount: event.participantCount > 0 ? event.participantCount - 1 : 0,
-          isJoined: false,
-        );
+        event.participantCount = event.participantCount > 0 ? event.participantCount - 1 : 0;
+        event.isJoined = false;
         isLoading = false;
       });
       widget.onEventUpdated(event);
@@ -180,14 +182,18 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   Icon(Icons.date_range, color: Colors.blue),
                   SizedBox(width: 5),
                   Text(
-                    "${event.date.toLocal().toString().split(' ')[0]}",
+                    "เริ่ม: ${event.startDate.toLocal().toString().split(' ')[0]}",
                     style: TextStyle(fontSize: 16),
                   ),
-                  SizedBox(width: 20),
-                  Icon(Icons.access_time, color: Colors.blue),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.date_range, color: Colors.red),
                   SizedBox(width: 5),
                   Text(
-                    "${TimeOfDay.fromDateTime(event.date).format(context)}",
+                    "สิ้นสุด: ${event.endDate.toLocal().toString().split(' ')[0]}",
                     style: TextStyle(fontSize: 16),
                   ),
                 ],

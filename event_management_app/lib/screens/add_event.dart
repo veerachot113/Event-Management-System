@@ -18,8 +18,8 @@ class AddEventPage extends StatefulWidget {
 class _AddEventPageState extends State<AddEventPage> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
-  DateTime? selectedDate;
-  TimeOfDay? selectedTime;
+  DateTime? selectedStartDate;
+  DateTime? selectedEndDate;
   Uint8List? _imageData;
   String? _imageName;
 
@@ -37,75 +37,73 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   void addEvent(BuildContext context) async {
-    if (selectedDate == null || selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันและเวลา')));
+    if (selectedStartDate == null || selectedEndDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้นและสิ้นสุด')));
       return;
     }
 
-    DateTime eventDateTime = DateTime(
-      selectedDate!.year,
-      selectedDate!.month,
-      selectedDate!.day,
-      selectedTime!.hour,
-      selectedTime!.minute,
-    );
+    if (selectedStartDate!.isAfter(selectedEndDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('วันเริ่มต้นต้องไม่หลังวันสิ้นสุด')));
+      return;
+    }
 
     final response = await ApiService.addEvent(
       titleController.text,
       descriptionController.text,
-      eventDateTime,
+      selectedStartDate!,
+      selectedEndDate!,
       widget.token,
-      _imageData, // ส่งข้อมูลรูปภาพ
-      _imageName, // ส่งชื่อไฟล์รูปภาพ
+      _imageData,
+      _imageName,
     );
 
-  if (response != null) {
-    // สร้าง Event ใหม่จากการตอบกลับ
-    Event newEvent = Event(
-      id: response['id'],
-      title: response['title'],
-      description: response['description'],
-      date: DateTime.parse(response['date']),
-      createdBy: response['createdBy'],
-      imageUrl: response['image'] != null
-          ? 'http://127.0.0.1:8090/api/files/events/${response['id']}/${response['image']}'
-          : null,
-    );
+    if (response != null) {
+      Event newEvent = Event(
+        id: response['id'],
+        title: response['title'],
+        description: response['description'],
+        startDate: DateTime.parse(response['startDate']),
+        endDate: DateTime.parse(response['endDate']),
+        createdBy: response['createdBy'],
+        imageUrl: response['image'] != null
+            ? 'http://127.0.0.1:8090/api/files/events/${response['id']}/${response['image']}'
+            : null,
+      );
 
-    widget.onEventAdded(newEvent);
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ: ${response['title']}')));
-    Navigator.pop(context); // กลับไปยังหน้า Events
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมไม่สำเร็จ')));
-    print('Error: เพิ่มกิจกรรมไม่สำเร็จ');
+      widget.onEventAdded(newEvent);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ')));
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมไม่สำเร็จ')));
+    }
   }
-}
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: selectedStartDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null && picked != selectedStartDate) {
       setState(() {
-        selectedDate = picked;
+        selectedStartDate = picked;
       });
     }
   }
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
+  Future<void> _selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialTime: selectedTime ?? TimeOfDay.now(),
+      initialDate: selectedEndDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != selectedTime) {
+    if (picked != null && picked != selectedEndDate) {
       setState(() {
-        selectedTime = picked;
+        selectedEndDate = picked;
       });
     }
   }
@@ -118,7 +116,7 @@ class _AddEventPageState extends State<AddEventPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // เพิ่มเพื่อรองรับการเลื่อน
+        child: SingleChildScrollView(
           child: Card(
             elevation: 4,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -142,42 +140,34 @@ class _AddEventPageState extends State<AddEventPage> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectDate(context),
-                          child: AbsorbPointer(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: selectedDate != null
-                                    ? 'เลือกวันที่: ${selectedDate!.toLocal().toString().split(' ')[0]}'
-                                    : 'เลือกวันที่',
-                                border: OutlineInputBorder(),
-                                suffixIcon: Icon(Icons.calendar_today),
-                              ),
-                            ),
-                          ),
+                  GestureDetector(
+                    onTap: () => _selectStartDate(context),
+                    child: AbsorbPointer(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: selectedStartDate != null
+                              ? 'เลือกวันเริ่มต้น: ${selectedStartDate!.toLocal().toString().split(' ')[0]}'
+                              : 'เลือกวันเริ่มต้น',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.calendar_today),
                         ),
                       ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectTime(context),
-                          child: AbsorbPointer(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: selectedTime != null
-                                    ? 'เลือกเวลา: ${selectedTime!.format(context)}'
-                                    : 'เลือกเวลา',
-                                border: OutlineInputBorder(),
-                                suffixIcon: Icon(Icons.access_time),
-                              ),
-                            ),
-                          ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () => _selectEndDate(context),
+                    child: AbsorbPointer(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: selectedEndDate != null
+                              ? 'เลือกวันสิ้นสุด: ${selectedEndDate!.toLocal().toString().split(' ')[0]}'
+                              : 'เลือกวันสิ้นสุด',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.calendar_today),
                         ),
                       ),
-                    ],
+                    ),
                   ),
                   SizedBox(height: 16),
                   _imageData != null
