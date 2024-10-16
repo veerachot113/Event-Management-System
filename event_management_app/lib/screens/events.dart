@@ -1,7 +1,8 @@
+// screens/events.dart
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'add_event.dart';
-import 'edit_event.dart'; // เพิ่มการ import หน้าแก้ไขกิจกรรม
+import 'edit_event.dart';
 import '../models/event.dart';
 import 'login.dart';
 
@@ -65,9 +66,9 @@ class _EventsPageState extends State<EventsPage> {
       setState(() {
         events.removeWhere((event) => event.id == eventId);
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Event deleted successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ลบกิจกรรมสำเร็จ')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete event')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถลบกิจกรรม')));
     }
   }
 
@@ -78,8 +79,13 @@ class _EventsPageState extends State<EventsPage> {
         title: Text('รายการกิจกรรม'),
         actions: [
           IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: fetchEvents,
+          ),
+          IconButton(
             icon: Icon(Icons.logout),
             onPressed: () {
+              // ลบข้อมูลการเข้าสู่ระบบและกลับไปหน้าเข้าสู่ระบบ
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
@@ -93,63 +99,70 @@ class _EventsPageState extends State<EventsPage> {
           : ListView.builder(
               itemCount: events.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(events[index].title),
-                  subtitle: Text(events[index].description),
-                  trailing: widget.isAdmin
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditEventPage(
-                                      event: events[index],
-                                      token: widget.token,
-                                      onEventUpdated: onEventUpdated,
+                return Card(
+                  child: ListTile(
+                    leading: events[index].imageUrl != null
+                        ? Image.network(
+                            events[index].imageUrl!,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          )
+                        : Icon(Icons.event),
+                    title: Text(events[index].title),
+                    subtitle: Text(events[index].description),
+                    trailing: widget.isAdmin
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditEventPage(
+                                        event: events[index],
+                                        token: widget.token,
+                                        onEventUpdated: onEventUpdated,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text('ยืนยันการลบ'),
-                                      content: Text('คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?'),
-                                      actions: [
-                                        TextButton(
-                                          child: Text('ยกเลิก'),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: Text('ลบ'),
-                                          onPressed: () {
-                                            deleteEvent(events[index].id);
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        )
-                      : null,
-                  onTap: () {
-                    // ฟังก์ชันเข้าร่วมกิจกรรมหรือยกเลิก
-                  },
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('ยืนยันการลบ'),
+                                        content: Text('คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?'),
+                                        actions: [
+                                          TextButton(
+                                            child: Text('ยกเลิก'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: Text('ลบ'),
+                                            onPressed: () {
+                                              deleteEvent(events[index].id);
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          )
+                        : null,
+                  ),
                 );
               },
             ),

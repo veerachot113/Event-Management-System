@@ -1,10 +1,11 @@
-// event.dart
+// models/event.dart
 class Event {
   final String id;
   final String title;
   final String description;
   final DateTime date;
   final String createdBy;
+  final String? imageUrl; // เพิ่มฟิลด์รูปภาพ
 
   Event({
     required this.id,
@@ -12,5 +13,6 @@ class Event {
     required this.description,
     required this.date,
     required this.createdBy,
+    this.imageUrl,
   });
 }

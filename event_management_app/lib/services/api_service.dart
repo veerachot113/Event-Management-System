@@ -1,8 +1,12 @@
 // api_service.dart
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/event.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+
 
 class ApiService {
   static const String baseUrl = 'http://127.0.0.1:8090/api/collections';
@@ -56,7 +60,94 @@ static Future<dynamic> login(String email, String password) async {
 }
 
 
-  // Function to fetch events
+  // ฟังก์ชันเพิ่มกิจกรรมพร้อมรูปภาพ
+  // ฟังก์ชันเพิ่มกิจกรรม
+static Future<dynamic> addEvent(
+  String title,
+  String description,
+  DateTime date,
+  String token,
+  Uint8List? imageData,
+  String? imageName,
+) async {
+  try {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/events/records'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.fields['title'] = title;
+    request.fields['description'] = description;
+    request.fields['date'] = date.toIso8601String();
+    request.fields['createdBy'] = 'ui5ldqnmu1qt3es'; // แทนที่ด้วย ID ผู้ใช้จริง
+
+    if (imageData != null && imageName != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes('image', imageData, filename: imageName),
+      );
+    }
+
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+
+    print('Response status code: ${response.statusCode}'); // เพิ่มการพิมพ์สถานะการตอบกลับ
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return json.decode(response.body);
+    } else {
+      print('Error adding event: ${response.body}');
+      return null;
+    }
+  } catch (e) {
+    print('Error during adding event: $e');
+    return null;
+  }
+}
+
+  // ฟังก์ชันแก้ไขกิจกรรม
+  static Future<dynamic> updateEvent(
+    String eventId,
+    String title,
+    String description,
+    DateTime date,
+    String token,
+    Uint8List? imageData, // รับข้อมูลรูปภาพ
+    String? imageName,    // รับชื่อไฟล์รูปภาพ
+  ) async {
+    try {
+      var request = http.MultipartRequest(
+        'PATCH',
+        Uri.parse('$baseUrl/events/records/$eventId'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['title'] = title;
+      request.fields['description'] = description;
+      request.fields['date'] = date.toIso8601String();
+
+      if (imageData != null && imageName != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes('image', imageData, filename: imageName),
+        );
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print('Error updating event: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error during updating event: $e');
+      return null;
+    }
+  }
+
+
+  // ฟังก์ชันดึงกิจกรรม (ปรับปรุงเพื่อรวม imageUrl)
+  // ฟังก์ชันดึงข้อมูลกิจกรรม
   static Future<List<Event>> getEvents() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/events/records'));
@@ -64,12 +155,15 @@ static Future<dynamic> login(String email, String password) async {
         final data = json.decode(response.body);
         if (data['items'] is List) {
           return (data['items'] as List).map((event) => Event(
-            id: event['id'],
-            title: event['title'],
-            description: event['description'],
-            date: DateTime.parse(event['date']),
-            createdBy: event['createdBy'],
-          )).toList();
+                id: event['id'],
+                title: event['title'],
+                description: event['description'],
+                date: DateTime.parse(event['date']),
+                createdBy: event['createdBy'],
+                imageUrl: event['image'] != null
+                    ? 'http://127.0.0.1:8090/api/files/events/${event['id']}/${event['image']}'
+                    : null,
+              )).toList();
         } else {
           throw Exception('Expected a list but got: $data');
         }
@@ -81,35 +175,6 @@ static Future<dynamic> login(String email, String password) async {
     }
   }
 
-  // Function to add an event
- static Future<dynamic> addEvent(String title, String description, DateTime date, String token) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/events/records'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // ใช้ token ที่ส่งเข้ามา
-      },
-      body: jsonEncode({
-        'title': title,
-        'description': description,
-        'date': date.toIso8601String(),
-        'createdBy': 'ui5ldqnmu1qt3es', // แทนที่ด้วย ID ของผู้ดูแลระบบ
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      // แสดงข้อผิดพลาดที่ตอบกลับจาก API
-      print('Error adding event: ${response.body}');
-      return json.decode(response.body); // แสดงข้อผิดพลาด
-    }
-  } catch (e) {
-    print('Error during adding event: $e');
-    return null; // ส่งคืน null ถ้ามีข้อผิดพลาด
-  }
-}
  static Future<bool> deleteEvent(String eventId, String token) async {
     try {
       final response = await http.delete(
@@ -131,33 +196,7 @@ static Future<dynamic> login(String email, String password) async {
     }
   }
 
-  // เพิ่มฟังก์ชันแก้ไขกิจกรรม
-  static Future<dynamic> updateEvent(String eventId, String title, String description, DateTime date, String token) async {
-    try {
-      final response = await http.patch(
-        Uri.parse('$baseUrl/events/records/$eventId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'title': title,
-          'description': description,
-          'date': date.toIso8601String(),
-        }),
-      );
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        print('Error updating event: ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      print('Error during updating event: $e');
-      return null;
-    }
-  }
 
   static Future<void> logout() async {
     // ถ้ามีการจัดการ token หรือ session คุณสามารถทำการลบได้ที่นี่
