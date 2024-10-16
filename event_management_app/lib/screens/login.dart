@@ -16,14 +16,14 @@ class _LoginPageState extends State<LoginPage> {
 
 void login(BuildContext context) async {
   if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณากรอกอีเมลและรหัสผ่าน')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณากรอกข้อมูลให้ครบถ้วน')));
     return;
   }
 
   final response = await ApiService.login(emailController.text, passwordController.text);
   if (response != null && response['token'] != null) {
     String token = response['token'];
-    bool isAdmin = response['record']['isAdmin']; // Get admin status from response
+    bool isAdmin = response['record']['isAdmin'];
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => EventsPage(token: token, isAdmin: isAdmin)),
@@ -32,6 +32,7 @@ void login(BuildContext context) async {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าสู่ระบบไม่สำเร็จ')));
   }
 }
+
 
 
   @override

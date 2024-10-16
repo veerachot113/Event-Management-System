@@ -4,7 +4,6 @@ import 'package:event_management_app/screens/event_detail.dart';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 
-
 class EventCard extends StatelessWidget {
   final Event event;
   final bool isAdmin;
@@ -63,10 +62,26 @@ class EventCard extends StatelessWidget {
                   SizedBox(height: 8),
                   Text(
                     event.description,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
+                  SizedBox(height: 10),
+                  if (event.location != null) // แสดงสถานที่ถ้ามี
+                    Row(
+                      children: [
+                        Icon(Icons.place, color: Colors.green),
+                        SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            event.location!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          ),
+                        ),
+                      ],
+                    ),
                   SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -76,17 +91,17 @@ class EventCard extends StatelessWidget {
                           Icon(Icons.date_range, color: Colors.blue),
                           SizedBox(width: 5),
                           Text(
-                            "${event.date.toLocal().toString().split(' ')[0]}",
+                            "${event.startDate.toLocal().toString().split(' ')[0]} ${TimeOfDay.fromDateTime(event.startDate).format(context)}",
                             style: TextStyle(fontSize: 14),
                           ),
                         ],
                       ),
                       Row(
                         children: [
-                          Icon(Icons.access_time, color: Colors.blue),
+                          Icon(Icons.date_range, color: Colors.red),
                           SizedBox(width: 5),
                           Text(
-                            "${TimeOfDay.fromDateTime(event.date).format(context)}",
+                            "${event.endDate.toLocal().toString().split(' ')[0]} ${TimeOfDay.fromDateTime(event.endDate).format(context)}",
                             style: TextStyle(fontSize: 14),
                           ),
                         ],

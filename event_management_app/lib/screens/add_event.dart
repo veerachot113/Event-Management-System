@@ -18,6 +18,7 @@ class AddEventPage extends StatefulWidget {
 class _AddEventPageState extends State<AddEventPage> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
+  final locationController = TextEditingController(); // เพิ่ม TextEditingController สำหรับสถานที่
   DateTime? selectedStartDate;
   DateTime? selectedEndDate;
   Uint8List? _imageData;
@@ -37,8 +38,8 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   void addEvent(BuildContext context) async {
-    if (selectedStartDate == null || selectedEndDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้นและสิ้นสุด')));
+    if (selectedStartDate == null || selectedEndDate == null || locationController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้น, สิ้นสุด และกรอกสถานที่')));
       return;
     }
 
@@ -52,6 +53,7 @@ class _AddEventPageState extends State<AddEventPage> {
       descriptionController.text,
       selectedStartDate!,
       selectedEndDate!,
+      locationController.text, // ส่งข้อมูลสถานที่ไปยัง API
       widget.token,
       _imageData,
       _imageName,
@@ -68,6 +70,7 @@ class _AddEventPageState extends State<AddEventPage> {
         imageUrl: response['image'] != null
             ? 'http://127.0.0.1:8090/api/files/events/${response['id']}/${response['image']}'
             : null,
+        location: response['location'], // เพิ่มการรับค่าข้อมูลสถานที่
       );
 
       widget.onEventAdded(newEvent);
@@ -136,6 +139,14 @@ class _AddEventPageState extends State<AddEventPage> {
                     controller: descriptionController,
                     decoration: InputDecoration(
                       labelText: 'รายละเอียดกิจกรรม',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    controller: locationController,
+                    decoration: InputDecoration(
+                      labelText: 'สถานที่',
                       border: OutlineInputBorder(),
                     ),
                   ),

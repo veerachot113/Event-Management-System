@@ -36,102 +36,99 @@ class _EventDetailPageState extends State<EventDetailPage> {
     });
   }
 
-  Future<void> _refreshEvent() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
-    String? token = prefs.getString('token');
+Future<void> _refreshEvent() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? userId = prefs.getString('userId');
+  String? token = prefs.getString('token');
 
-    if (userId != null && token != null) {
-      List<Event> updatedEvents = await ApiService.getEvents(userId);
-      Event? updatedEvent = updatedEvents.firstWhere((e) => e.id == event.id, orElse: () => event);
+  if (userId != null && token != null) {
+    List<Event> updatedEvents = await ApiService.getEvents(userId);
+    Event? updatedEvent = updatedEvents.firstWhere((e) => e.id == event.id, orElse: () => event);
 
-      // อัปเดตสถานะการเข้าร่วม
-      bool isJoined = updatedEvent.participants.contains(userId);
+    // อัปเดตสถานะการเข้าร่วม
+    bool isJoined = updatedEvent.participants.contains(userId);
 
-      setState(() {
-        event = Event(
-          id: updatedEvent.id,
-          title: updatedEvent.title,
-          description: updatedEvent.description,
-          startDate: updatedEvent.startDate,
-          endDate: updatedEvent.endDate,
-          createdBy: updatedEvent.createdBy,
-          imageUrl: updatedEvent.imageUrl,
-          participantCount: updatedEvent.participantCount,
-          isJoined: isJoined, // ใช้ข้อมูลล่าสุด
-          participants: updatedEvent.participants,
-        );
-      });
-    }
-  }
-
-  Future<void> _joinEvent() async {
     setState(() {
-      isLoading = true;
+      event = Event(
+        id: updatedEvent.id,
+        title: updatedEvent.title,
+        description: updatedEvent.description,
+        startDate: updatedEvent.startDate,
+        endDate: updatedEvent.endDate,
+        createdBy: updatedEvent.createdBy,
+        imageUrl: updatedEvent.imageUrl,
+        participantCount: updatedEvent.participants.length,
+        isJoined: isJoined,
+        participants: updatedEvent.participants, location: '',
+      );
     });
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    String? userId = prefs.getString('userId'); 
-
-    if (token == null || userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    String? error = await ApiService.joinEvent(event.id, userId, token);
-    if (error == null) {
-      setState(() {
-        event.participantCount += 1;
-        event.isJoined = true;
-        isLoading = false;
-      });
-      widget.onEventUpdated(event);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าร่วมกิจกรรมสำเร็จ')));
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถเข้าร่วมกิจกรรมได้: $error')));
-    }
   }
+}
 
-  Future<void> _cancelJoinEvent() async {
+
+Future<void> _joinEvent() async {
+  setState(() {
+    isLoading = true;
+  });
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+  String? userId = prefs.getString('userId');
+
+  if (token == null || userId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
     setState(() {
-      isLoading = true;
+      isLoading = false; // แก้ไขสถานะเมื่อไม่พบ Token หรือ User ID
     });
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    String? userId = prefs.getString('userId');
-
-    if (token == null || userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    String? error = await ApiService.cancelJoinEvent(event.id, userId, token);
-    if (error == null) {
-      setState(() {
-        event.participantCount = event.participantCount > 0 ? event.participantCount - 1 : 0;
-        event.isJoined = false;
-        isLoading = false;
-      });
-      widget.onEventUpdated(event);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ยกเลิกการเข้าร่วมกิจกรรมสำเร็จ')));
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถยกเลิกการเข้าร่วมกิจกรรมได้: $error')));
-    }
+    return;
   }
+
+  String? error = await ApiService.joinEvent(event.id, userId, token);
+  if (error == null) {
+    await _refreshEvent(); // รีเฟรชข้อมูลทันทีหลังเข้าร่วม
+    setState(() {
+      isLoading = false; // ตั้งสถานะเป็น false เสมอหลังจากดำเนินการเสร็จ
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าร่วมกิจกรรมสำเร็จ')));
+  } else {
+    setState(() {
+      isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถเข้าร่วมกิจกรรมได้: $error')));
+  }
+}
+
+Future<void> _cancelJoinEvent() async {
+  setState(() {
+    isLoading = true;
+  });
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+  String? userId = prefs.getString('userId');
+
+  if (token == null || userId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
+    setState(() {
+      isLoading = false; // แก้ไขสถานะเมื่อไม่พบ Token หรือ User ID
+    });
+    return;
+  }
+
+  String? error = await ApiService.cancelJoinEvent(event.id, userId, token);
+  if (error == null) {
+    await _refreshEvent(); // รีเฟรชข้อมูลทันทีหลังยกเลิก
+    setState(() {
+      isLoading = false; // ตั้งสถานะเป็น false เสมอหลังจากดำเนินการเสร็จ
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ยกเลิกการเข้าร่วมกิจกรรมสำเร็จ')));
+  } else {
+    setState(() {
+      isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถยกเลิกการเข้าร่วมกิจกรรมได้: $error')));
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +172,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
               Text(
                 event.description,
                 style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(Icons.place, color: Colors.green),
+                  SizedBox(width: 5),
+                  Text(
+                    "สถานที่: ${event.location ?? 'ไม่ระบุ'}",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
               ),
               SizedBox(height: 16),
               Row(

@@ -1,4 +1,3 @@
-// signup.dart
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'login.dart';
@@ -12,6 +11,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final usernameController = TextEditingController(); // เพิ่ม Username Controller
   bool _isObscure = true;
   bool _isConfirmObscure = true;
 
@@ -21,7 +21,14 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
+    // ตรวจสอบว่ามีการกรอกข้อมูล username หรือไม่
+    if (usernameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณากรอก Username')));
+      return;
+    }
+
     final response = await ApiService.signUp(
+      usernameController.text, // เพิ่มการส่ง Username
       emailController.text,
       passwordController.text,
       confirmPasswordController.text,
@@ -54,6 +61,15 @@ class _SignUpPageState extends State<SignUpPage> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 20),
+                TextField(
+                  controller: usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+                SizedBox(height: 16),
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(

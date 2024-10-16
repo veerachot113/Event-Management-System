@@ -19,6 +19,7 @@ class EditEventPage extends StatefulWidget {
 class _EditEventPageState extends State<EditEventPage> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
+  final locationController = TextEditingController(); // เพิ่ม TextEditingController สำหรับสถานที่
   DateTime? selectedStartDate;
   DateTime? selectedEndDate;
   Uint8List? _imageData;
@@ -30,6 +31,7 @@ class _EditEventPageState extends State<EditEventPage> {
     super.initState();
     titleController.text = widget.event.title;
     descriptionController.text = widget.event.description;
+    locationController.text = widget.event.location ?? ''; // ตั้งค่าเริ่มต้นของสถานที่
     selectedStartDate = widget.event.startDate;
     selectedEndDate = widget.event.endDate;
     existingImageUrl = widget.event.imageUrl;
@@ -50,8 +52,8 @@ class _EditEventPageState extends State<EditEventPage> {
   }
 
   void updateEvent(BuildContext context) async {
-    if (selectedStartDate == null || selectedEndDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้นและสิ้นสุด')));
+    if (selectedStartDate == null || selectedEndDate == null || locationController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้น, สิ้นสุด และกรอกสถานที่')));
       return;
     }
 
@@ -65,9 +67,10 @@ class _EditEventPageState extends State<EditEventPage> {
       titleController.text,
       descriptionController.text,
       selectedStartDate!,
-      selectedEndDate! as String,
-      widget.token as Uint8List?,
-      _imageData as String?,
+      selectedEndDate!,
+      locationController.text, // ส่งข้อมูลสถานที่ไปยัง API
+      widget.token,
+      _imageData,
       _imageName,
     );
 
@@ -84,6 +87,7 @@ class _EditEventPageState extends State<EditEventPage> {
             : null,
         participantCount: response['participantCount'] ?? widget.event.participantCount,
         isJoined: widget.event.isJoined,
+        location: response['location'], // เพิ่มการรับค่าข้อมูลสถานที่
       );
 
       widget.onEventUpdated(updatedEvent);
@@ -144,6 +148,11 @@ class _EditEventPageState extends State<EditEventPage> {
               TextField(
                 controller: descriptionController,
                 decoration: InputDecoration(labelText: 'รายละเอียดกิจกรรม', border: OutlineInputBorder()),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: locationController,
+                decoration: InputDecoration(labelText: 'สถานที่', border: OutlineInputBorder()),
               ),
               SizedBox(height: 16),
               GestureDetector(
