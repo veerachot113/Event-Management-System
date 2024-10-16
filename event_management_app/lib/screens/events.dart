@@ -1,13 +1,10 @@
-// screens/events.dart
-import 'package:event_management_app/widgets/event_card.dart';
+import 'package:event_management_app/screens/add_event.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
-import 'add_event.dart';
-import 'edit_event.dart';
+import 'event_detail.dart';
 import '../models/event.dart';
 import 'login.dart';
-// เพิ่ม import สำหรับ EventDetailPage
 
 class EventsPage extends StatefulWidget {
   final String token;
@@ -29,39 +26,31 @@ class _EventsPageState extends State<EventsPage> {
     fetchEvents();
   }
 
-// screens/events.dart
-Future<void> fetchEvents() async {
-  setState(() {
-    isLoading = true;
-  });
+  Future<void> fetchEvents() async {
+    setState(() {
+      isLoading = true;
+    });
 
-  try {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    String? userId = prefs.getString('userId');
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
 
-    print("Token Loaded: $token");
-    print("User ID Loaded: $userId");
+      if (userId == null) {
+        throw Exception('ไม่พบ User ID');
+      }
 
-    if (token == null || userId == null) {
-      throw Exception('ไม่พบ Token หรือ User ID');
+      final fetchedEvents = await ApiService.getEvents(userId);
+      setState(() {
+        events = fetchedEvents;
+        isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching events: $error')));
     }
-
-    final fetchedEvents = await ApiService.getEvents(userId);
-    setState(() {
-      events = fetchedEvents;
-      isLoading = false;
-    });
-  } catch (error) {
-    setState(() {
-      isLoading = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching events: $error')));
   }
-}
-
-
-
 
   void onEventAdded(Event newEvent) {
     setState(() {
@@ -94,7 +83,7 @@ Future<void> fetchEvents() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('รายการกิจกรรม'),
+        title: Text('กิจกรรม'),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -103,7 +92,6 @@ Future<void> fetchEvents() async {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () {
-              // ลบข้อมูลการเข้าสู่ระบบและกลับไปหน้าเข้าสู่ระบบ
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
@@ -118,12 +106,19 @@ Future<void> fetchEvents() async {
               padding: EdgeInsets.all(16),
               itemCount: events.length,
               itemBuilder: (context, index) {
-                return EventCard(
-                  event: events[index],
-                  isAdmin: widget.isAdmin,
-                  token: widget.token,
-                  onEventUpdated: onEventUpdated,
-                  onDelete: deleteEvent,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventDetailPage(
+                          event: events[index],
+                          onEventUpdated: onEventUpdated,
+                        ),
+                      ),
+                    );
+                  },
+                  child: EventCard(event: events[index]),
                 );
               },
             ),
@@ -143,6 +138,80 @@ Future<void> fetchEvents() async {
               child: Icon(Icons.add),
             )
           : null,
+    );
+  }
+}
+
+class EventCard extends StatelessWidget {
+  final Event event;
+
+  EventCard({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        children: [
+          if (event.imageUrl != null)
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+              child: Image.network(
+                event.imageUrl!,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.title,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  event.description,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.date_range, color: Colors.blue),
+                        SizedBox(width: 5),
+                        Text(
+                          "${event.date.toLocal().toString().split(' ')[0]}",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.people, color: Colors.blue),
+                        SizedBox(width: 5),
+                        Text(
+                          "เข้าร่วม: ${event.participantCount}",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
