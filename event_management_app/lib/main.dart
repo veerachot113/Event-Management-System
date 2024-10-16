@@ -18,16 +18,18 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<Map<String, dynamic>?>(
-        future: AuthService.getUserData(), // Update this to get user data including admin status
+        future: AuthService.getUserData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else if (snapshot.hasData && snapshot.data != null) {
             String token = snapshot.data!['token'];
-            bool isAdmin = snapshot.data!['isAdmin']; // Extract the isAdmin status
-            return EventsPage(token: token, isAdmin: isAdmin); // Pass token and isAdmin status
+            bool isAdmin = snapshot.data!['isAdmin'];
+            return EventsPage(token: token, isAdmin: isAdmin);
           } else {
-            return LoginPage(); // Navigate to login if no user data
+            return LoginPage();
           }
         },
       ),

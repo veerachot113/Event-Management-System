@@ -73,7 +73,7 @@ class _EditEventPageState extends State<EditEventPage> {
       _imageName, // ส่งชื่อไฟล์รูปภาพ
     );
 
-    if (response != null) {
+    if (response != null && response is Map<String, dynamic>) {
       Event updatedEvent = Event(
         id: widget.event.id,
         title: response['title'],
@@ -83,6 +83,8 @@ class _EditEventPageState extends State<EditEventPage> {
         imageUrl: response['image'] != null
             ? 'http://127.0.0.1:8090/api/files/events/${response['id']}/${response['image']}'
             : null,
+        participantCount: response['participantCount'] ?? widget.event.participantCount,
+        isJoined: widget.event.isJoined, // หรือปรับตามการตอบกลับจาก API
       );
 
       widget.onEventUpdated(updatedEvent);
@@ -95,7 +97,6 @@ class _EditEventPageState extends State<EditEventPage> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    // ... โค้ดเดิมสำหรับเลือกวันที่ ...
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
@@ -111,7 +112,6 @@ class _EditEventPageState extends State<EditEventPage> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    // ... โค้ดเดิมสำหรับเลือกเวลา ...
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: selectedTime ?? TimeOfDay.now(),
@@ -132,17 +132,17 @@ class _EditEventPageState extends State<EditEventPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // เพิ่มเพื่อรองรับการเลื่อน
+        child: SingleChildScrollView( // รองรับการเลื่อนถ้าจำเป็น
           child: Column(
             children: [
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: 'ชื่อกิจกรรม'),
+                decoration: InputDecoration(labelText: 'ชื่อกิจกรรม', border: OutlineInputBorder()),
               ),
               SizedBox(height: 16),
               TextField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: 'รายละเอียดกิจกรรม'),
+                decoration: InputDecoration(labelText: 'รายละเอียดกิจกรรม', border: OutlineInputBorder()),
               ),
               SizedBox(height: 16),
               Row(
