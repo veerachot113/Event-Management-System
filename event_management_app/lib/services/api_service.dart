@@ -150,6 +150,7 @@ static Future<dynamic> login(String email, String password) async {
   // ฟังก์ชันดึงข้อมูลกิจกรรม
 // services/api_service.dart
 // services/api_service.dart
+// services/api_service.dart
 static Future<List<Event>> getEvents(String userId) async {
   try {
     final response = await http.get(Uri.parse('$baseUrl/events/records'));
@@ -171,6 +172,7 @@ static Future<List<Event>> getEvents(String userId) async {
                 : null,
             participantCount: participants.length,
             isJoined: isJoined,
+            participants: participants.cast<String>(), // เก็บ ID หรือชื่อผู้เข้าร่วม
           );
         }).toList();
       } else {
@@ -183,6 +185,7 @@ static Future<List<Event>> getEvents(String userId) async {
     throw Exception('Failed to load events');
   }
 }
+
 
 
 

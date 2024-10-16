@@ -8,6 +8,7 @@ class Event {
   final String? imageUrl;
   final int participantCount;
   final bool isJoined;
+  final List<String> participants; // เพิ่มฟิลด์นี้เพื่อเก็บชื่อหรือ ID ของผู้เข้าร่วม
 
   Event({
     required this.id,
@@ -18,21 +19,6 @@ class Event {
     this.imageUrl,
     this.participantCount = 0,
     this.isJoined = false,
+    this.participants = const [], // เริ่มต้นเป็นลิสต์ว่าง
   });
-
-  // คุณสามารถเพิ่ม factory constructor เพื่อสร้าง Event จาก JSON ได้
-  factory Event.fromJson(Map<String, dynamic> json) {
-    return Event(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      date: DateTime.parse(json['date']),
-      createdBy: json['createdBy'],
-      imageUrl: json['image'] != null
-          ? 'http://127.0.0.1:8090/api/files/events/${json['id']}/${json['image']}'
-          : null,
-      participantCount: json['participantCount'] ?? 0,
-      isJoined: json['isJoined'] ?? false,
-    );
-  }
 }
