@@ -69,6 +69,24 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
+  Future<void> _removeParticipant(String userId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ไม่พบ Token')));
+      return;
+    }
+
+    String? error = await ApiService.removeParticipant(event.id, userId, token);
+    if (error == null) {
+      await _refreshEvent();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ลบผู้เข้าร่วมสำเร็จ')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่สามารถลบผู้เข้าร่วมได้: $error')));
+    }
+  }
+
   Future<void> _joinEvent() async {
     setState(() {
       isLoading = true;
@@ -146,7 +164,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ParticipantsPage(event: event),
+                    builder: (context) => ParticipantsPage(
+                      event: event,
+                      onRemoveParticipant: (userId) async {
+                        await _removeParticipant(userId);
+                        // รีเฟรชกิจกรรมหลังจากลบผู้เข้าร่วม
+                        await _refreshEvent();
+                      },
+                    ),
                   ),
                 );
               },

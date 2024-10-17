@@ -267,7 +267,44 @@ static Future<String?> cancelJoinEvent(String eventId, String userId, String tok
   }
 }
 
+static Future<String?> removeParticipant(String eventId, String userId, String token) async {
+  try {
+    // ดึงข้อมูลกิจกรรมก่อนเพื่อลบ userId ออกจาก participants
+    final response = await http.get(
+      Uri.parse('$baseUrl/events/records/$eventId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
 
+    if (response.statusCode != 200) {
+      return 'Failed to fetch event data';
+    }
+
+    final eventData = json.decode(response.body);
+    List<dynamic> participants = eventData['participants'] ?? [];
+
+    // ลบ userId ออกจาก participants
+    participants.remove(userId);
+
+    // อัปเดตรายการผู้เข้าร่วมใหม่
+    final updateResponse = await http.patch(
+      Uri.parse('$baseUrl/events/records/$eventId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({"participants": participants}),
+    );
+
+    if (updateResponse.statusCode == 200) {
+      return null; // สำเร็จ
+    } else {
+      String errorMessage = json.decode(updateResponse.body)['message'] ?? 'Error removing participant';
+      return errorMessage;
+    }
+  } catch (e) {
+    return 'Connection error: $e';
+  }
+}
   // ฟังก์ชันลบกิจกรรม
   static Future<bool> deleteEvent(String eventId, String token) async {
     try {
@@ -289,6 +326,27 @@ static Future<String?> cancelJoinEvent(String eventId, String userId, String tok
       return false;
     }
   }
+// services/api_service.dart
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จาก userId
+  static Future<String?> getUsernameFromUserId(String userId, String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/records/$userId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['username'];
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching username: $e');
+      return null;
+    }
+  }
+
 
   // ฟังก์ชันออกจากระบบ
   static Future<void> logout() async {
