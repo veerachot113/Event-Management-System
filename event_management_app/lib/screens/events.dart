@@ -1,3 +1,4 @@
+// screens/events.dart
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'event_detail.dart';
@@ -5,6 +6,7 @@ import '../models/event.dart';
 import 'add_event.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
+import 'edit_event.dart'; // เพิ่ม import สำหรับหน้าแก้ไขกิจกรรม
 
 class EventsPage extends StatefulWidget {
   final String token;
@@ -70,15 +72,20 @@ class _EventsPageState extends State<EventsPage> {
     });
   }
 
-  void updateEvent(Event updatedEvent) {
+  void onEventUpdated(Event updatedEvent) {
     setState(() {
       int index = events.indexWhere((e) => e.id == updatedEvent.id);
       if (index != -1) {
         events[index] = updatedEvent;
-        filteredEvents = events.where((event) {
-          return event.title.toLowerCase().contains(searchController.text.toLowerCase());
-        }).toList();
+        filteredEvents = events;
       }
+    });
+  }
+
+  void onEventDeleted(String eventId) {
+    setState(() {
+      events.removeWhere((event) => event.id == eventId);
+      filteredEvents.removeWhere((event) => event.id == eventId);
     });
   }
 
@@ -133,12 +140,18 @@ class _EventsPageState extends State<EventsPage> {
                               MaterialPageRoute(
                                 builder: (context) => EventDetailPage(
                                   event: filteredEvents[index],
-                                  onEventUpdated: updateEvent, // ใช้ฟังก์ชัน updateEvent
+                                  onEventUpdated: onEventUpdated,
                                 ),
                               ),
                             );
                           },
-                          child: EventCard(event: filteredEvents[index]),
+                          child: EventCard(
+                            event: filteredEvents[index],
+                            isAdmin: widget.isAdmin,
+                            token: widget.token,
+                            onEventUpdated: onEventUpdated,
+                            onDelete: onEventDeleted,
+                          ),
                         );
                       },
                     ),
@@ -168,8 +181,18 @@ class _EventsPageState extends State<EventsPage> {
 
 class EventCard extends StatelessWidget {
   final Event event;
+  final bool isAdmin;
+  final String token;
+  final Function(Event) onEventUpdated;
+  final Function(String) onDelete;
 
-  const EventCard({super.key, required this.event});
+  const EventCard({super.key, 
+    required this.event,
+    required this.isAdmin,
+    required this.token,
+    required this.onEventUpdated,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -177,16 +200,30 @@ class EventCard extends StatelessWidget {
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       margin: const EdgeInsets.symmetric(vertical: 10),
-      child: ClipRRect(
+      child: InkWell(
         borderRadius: BorderRadius.circular(15),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventDetailPage(
+                event: event,
+                onEventUpdated: onEventUpdated,
+              ),
+            ),
+          );
+        },
         child: Column(
           children: [
             if (event.imageUrl != null)
-              Image.network(
-                event.imageUrl!,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                child: Image.network(
+                  event.imageUrl!,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -198,33 +235,91 @@ class EventCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.date_range, color: Colors.blue),
-                      const SizedBox(width: 5),
-                      Text(
-                        "${event.startDate.toLocal().toString().split(' ')[0]} - ${event.endDate.toLocal().toString().split(' ')[0]}",
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.people, color: Colors.blue),
-                      const SizedBox(width: 5),
-                      Text(
-                        "ผู้เข้าร่วม: ${event.participantCount}",
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
                   Text(
                     event.description,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.date_range, color: Colors.blue),
+                          const SizedBox(width: 5),
+                          Text(
+                            "${event.startDate.toLocal().toString().split(' ')[0]} - ${event.endDate.toLocal().toString().split(' ')[0]}",
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.people, color: Colors.blue),
+                          const SizedBox(width: 5),
+                          Text(
+                            "ผู้เข้าร่วม: ${event.participantCount}",
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            if (isAdmin)
+              ButtonBar(
+                alignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // นำทางไปยังหน้าการแก้ไขกิจกรรม
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditEventPage(
+                            event: event,
+                            token: token,
+                            onEventUpdated: onEventUpdated,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                    label: const Text('แก้ไข'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      bool success = await ApiService.deleteEvent(event.id, token);
+                      if (success) {
+                        onDelete(event.id); // ลบกิจกรรมออกจากรายการเมื่อสำเร็จ
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ลบกิจกรรมสำเร็จ')));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ไม่สามารถลบกิจกรรมได้')));
+                      }
+                    },
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    label: const Text('ลบ'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
