@@ -218,7 +218,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const Icon(Icons.date_range, color: Colors.blue),
                   const SizedBox(width: 5),
                   Text(
-                    "เริ่ม: ${event.startDate.toLocal().toString().split(' ')[0]}",
+                    "เริ่ม: ${event.startDate.toLocal().toString().split(' ')[0]} ${TimeOfDay.fromDateTime(event.startDate).format(context)}", // แสดงวันและเวลาเริ่มต้น
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],
@@ -229,7 +229,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const Icon(Icons.date_range, color: Colors.red),
                   const SizedBox(width: 5),
                   Text(
-                    "สิ้นสุด: ${event.endDate.toLocal().toString().split(' ')[0]}",
+                    "สิ้นสุด: ${event.endDate.toLocal().toString().split(' ')[0]} ${TimeOfDay.fromDateTime(event.endDate).format(context)}", // แสดงวันและเวลาสิ้นสุด
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],

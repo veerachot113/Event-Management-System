@@ -67,9 +67,11 @@ class _EventsPageState extends State<EventsPage> {
 
   void onEventAdded(Event newEvent) {
     setState(() {
-      events.add(newEvent);
+      events.insert(0, newEvent); 
     });
   }
+
+
 
   void onEventUpdated(Event updatedEvent) {
     setState(() {
