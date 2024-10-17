@@ -1,4 +1,3 @@
-// screens/events.dart
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'event_detail.dart';
@@ -71,6 +70,18 @@ class _EventsPageState extends State<EventsPage> {
     });
   }
 
+  void updateEvent(Event updatedEvent) {
+    setState(() {
+      int index = events.indexWhere((e) => e.id == updatedEvent.id);
+      if (index != -1) {
+        events[index] = updatedEvent;
+        filteredEvents = events.where((event) {
+          return event.title.toLowerCase().contains(searchController.text.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +133,7 @@ class _EventsPageState extends State<EventsPage> {
                               MaterialPageRoute(
                                 builder: (context) => EventDetailPage(
                                   event: filteredEvents[index],
-                                  onEventUpdated: onEventAdded,
+                                  onEventUpdated: updateEvent, // ใช้ฟังก์ชัน updateEvent
                                 ),
                               ),
                             );
