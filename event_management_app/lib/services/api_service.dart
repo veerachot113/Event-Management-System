@@ -81,6 +81,7 @@ static Future<dynamic> signUp(String username, String email, String password, St
       request.fields['startDate'] = startDate.toIso8601String();
       request.fields['endDate'] = endDate.toIso8601String();
       request.fields['location'] = location; // ส่งข้อมูล location
+      request.fields['createdBy'] = 'ui5ldqnmu1qt3es'; // แทนที่ด้วย ID ผู้ใช้จริง
 
       if (imageData != null && imageName != null) {
         request.files.add(
@@ -91,12 +92,16 @@ static Future<dynamic> signUp(String username, String email, String password, St
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
+      print('Response status code: ${response.statusCode}');
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return json.decode(response.body);
       } else {
+        print('Error adding event: ${response.body}');
         return null;
       }
     } catch (e) {
+      print('Error during adding event: $e');
       return null;
     }
   }
