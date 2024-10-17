@@ -1,1 +1,1 @@
-# Event-Planner
+# event_management_app
