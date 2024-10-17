@@ -9,6 +9,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,7 +23,7 @@ class MyApp extends StatelessWidget {
         future: AuthService.getUserData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Scaffold(
+            return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           } else if (snapshot.hasData && snapshot.data != null) {

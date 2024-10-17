@@ -9,7 +9,7 @@ class AddEventPage extends StatefulWidget {
   final String token;
   final Function(Event) onEventAdded;
 
-  AddEventPage({required this.token, required this.onEventAdded});
+  const AddEventPage({super.key, required this.token, required this.onEventAdded});
 
   @override
   _AddEventPageState createState() => _AddEventPageState();
@@ -39,12 +39,12 @@ class _AddEventPageState extends State<AddEventPage> {
 
   void addEvent(BuildContext context) async {
     if (selectedStartDate == null || selectedEndDate == null || locationController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('กรุณาเลือกวันเริ่มต้น, สิ้นสุด และกรอกสถานที่')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('กรุณาเลือกวันเริ่มต้น, สิ้นสุด และกรอกสถานที่')));
       return;
     }
 
     if (selectedStartDate!.isAfter(selectedEndDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('วันเริ่มต้นต้องไม่หลังวันสิ้นสุด')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('วันเริ่มต้นต้องไม่หลังวันสิ้นสุด')));
       return;
     }
 
@@ -74,10 +74,10 @@ class _AddEventPageState extends State<AddEventPage> {
       );
 
       widget.onEventAdded(newEvent);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('เพิ่มกิจกรรมสำเร็จ')));
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เพิ่มกิจกรรมไม่สำเร็จ')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('เพิ่มกิจกรรมไม่สำเร็จ')));
     }
   }
 
@@ -115,7 +115,7 @@ class _AddEventPageState extends State<AddEventPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('เพิ่มกิจกรรม'),
+        title: const Text('เพิ่มกิจกรรม'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -129,28 +129,28 @@ class _AddEventPageState extends State<AddEventPage> {
                 children: [
                   TextField(
                     controller: titleController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'ชื่อกิจกรรม',
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: descriptionController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'รายละเอียดกิจกรรม',
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: locationController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'สถานที่',
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () => _selectStartDate(context),
                     child: AbsorbPointer(
@@ -159,13 +159,13 @@ class _AddEventPageState extends State<AddEventPage> {
                           labelText: selectedStartDate != null
                               ? 'เลือกวันเริ่มต้น: ${selectedStartDate!.toLocal().toString().split(' ')[0]}'
                               : 'เลือกวันเริ่มต้น',
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.calendar_today),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: const Icon(Icons.calendar_today),
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () => _selectEndDate(context),
                     child: AbsorbPointer(
@@ -174,31 +174,31 @@ class _AddEventPageState extends State<AddEventPage> {
                           labelText: selectedEndDate != null
                               ? 'เลือกวันสิ้นสุด: ${selectedEndDate!.toLocal().toString().split(' ')[0]}'
                               : 'เลือกวันสิ้นสุด',
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.calendar_today),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: const Icon(Icons.calendar_today),
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _imageData != null
                       ? Image.memory(_imageData!, height: 150)
-                      : Text('ยังไม่ได้เลือกภาพ'),
-                  SizedBox(height: 16),
+                      : const Text('ยังไม่ได้เลือกภาพ'),
+                  const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _pickImage,
-                    icon: Icon(Icons.image),
-                    label: Text('เลือกภาพ'),
+                    icon: const Icon(Icons.image),
+                    label: const Text('เลือกภาพ'),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () => addEvent(context),
-                    child: Text('เพิ่มกิจกรรม'),
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 40),
-                      textStyle: TextStyle(fontSize: 18),
+                      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                      textStyle: const TextStyle(fontSize: 18),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: Text('เพิ่มกิจกรรม'),
                   ),
                 ],
               ),

@@ -11,7 +11,7 @@ class EventsPage extends StatefulWidget {
   final String token;
   final bool isAdmin;
 
-  EventsPage({required this.token, required this.isAdmin});
+  const EventsPage({super.key, required this.token, required this.isAdmin});
 
   @override
   _EventsPageState createState() => _EventsPageState();
@@ -75,14 +75,14 @@ class _EventsPageState extends State<EventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('รายการกิจกรรม'),
+        title: const Text('รายการกิจกรรม'),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: fetchEvents,
           ),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -100,7 +100,7 @@ class _EventsPageState extends State<EventsPage> {
               controller: searchController,
               decoration: InputDecoration(
                 labelText: 'ค้นหากิจกรรม',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onChanged: (value) => filterEvents(value),
@@ -108,11 +108,11 @@ class _EventsPageState extends State<EventsPage> {
           ),
           Expanded(
             child: isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
                     onRefresh: fetchEvents,
                     child: ListView.builder(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       itemCount: filteredEvents.length,
                       itemBuilder: (context, index) {
                         return GestureDetector(
@@ -148,7 +148,7 @@ class _EventsPageState extends State<EventsPage> {
                   ),
                 );
               },
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             )
           : null,
     );
@@ -158,14 +158,14 @@ class _EventsPageState extends State<EventsPage> {
 class EventCard extends StatelessWidget {
   final Event event;
 
-  EventCard({required this.event});
+  const EventCard({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      margin: EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
         child: Column(
@@ -184,27 +184,27 @@ class EventCard extends StatelessWidget {
                 children: [
                   Text(
                     event.title,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.date_range, color: Colors.blue),
-                      SizedBox(width: 5),
+                      const Icon(Icons.date_range, color: Colors.blue),
+                      const SizedBox(width: 5),
                       Text(
                         "${event.startDate.toLocal().toString().split(' ')[0]} - ${event.endDate.toLocal().toString().split(' ')[0]}",
-                        style: TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 14),
                       ),
-                      Spacer(),
-                      Icon(Icons.people, color: Colors.blue),
-                      SizedBox(width: 5),
+                      const Spacer(),
+                      const Icon(Icons.people, color: Colors.blue),
+                      const SizedBox(width: 5),
                       Text(
                         "ผู้เข้าร่วม: ${event.participantCount}",
-                        style: TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     event.description,
                     maxLines: 3,

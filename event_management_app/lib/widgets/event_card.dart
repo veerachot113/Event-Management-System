@@ -11,7 +11,7 @@ class EventCard extends StatelessWidget {
   final Function(Event) onEventUpdated;
   final Function(String) onDelete;
 
-  EventCard({
+  const EventCard({super.key, 
     required this.event,
     required this.isAdmin,
     required this.token,
@@ -24,7 +24,7 @@ class EventCard extends StatelessWidget {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      margin: EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       child: InkWell( // เพิ่ม InkWell เพื่อให้สามารถกดได้
         borderRadius: BorderRadius.circular(15),
         onTap: () {
@@ -42,7 +42,7 @@ class EventCard extends StatelessWidget {
           children: [
             if (event.imageUrl != null)
               ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                 child: Image.network(
                   event.imageUrl!,
                   height: 180,
@@ -57,65 +57,65 @@ class EventCard extends StatelessWidget {
                 children: [
                   Text(
                     event.title,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     event.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
-                  SizedBox(height: 10),
-                  if (event.location != null) // แสดงสถานที่ถ้ามี
-                    Row(
-                      children: [
-                        Icon(Icons.place, color: Colors.green),
-                        SizedBox(width: 5),
-                        Expanded(
-                          child: Text(
-                            event.location!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                          ),
+                  const SizedBox(height: 10),
+                  // แสดงสถานที่ถ้ามี
+                  Row(
+                    children: [
+                      Icon(Icons.place, color: Colors.green),
+                      SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          event.location!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                         ),
-                      ],
-                    ),
-                  SizedBox(height: 10),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.date_range, color: Colors.blue),
-                          SizedBox(width: 5),
+                          const Icon(Icons.date_range, color: Colors.blue),
+                          const SizedBox(width: 5),
                           Text(
                             "${event.startDate.toLocal().toString().split(' ')[0]} ${TimeOfDay.fromDateTime(event.startDate).format(context)}",
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ],
                       ),
                       Row(
                         children: [
-                          Icon(Icons.date_range, color: Colors.red),
-                          SizedBox(width: 5),
+                          const Icon(Icons.date_range, color: Colors.red),
+                          const SizedBox(width: 5),
                           Text(
                             "${event.endDate.toLocal().toString().split(' ')[0]} ${TimeOfDay.fromDateTime(event.endDate).format(context)}",
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(Icons.people, color: Colors.blue),
-                      SizedBox(width: 5),
+                      const Icon(Icons.people, color: Colors.blue),
+                      const SizedBox(width: 5),
                       Text(
                         "ผู้เข้าร่วม: ${event.participantCount}",
-                        style: TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
@@ -123,7 +123,7 @@ class EventCard extends StatelessWidget {
               ),
             ),
             if (isAdmin)
-              ButtonBar(
+              OverflowBar(
                 alignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
@@ -140,7 +140,7 @@ class EventCard extends StatelessWidget {
                         ),
                       );
                     },
-                    child: Text('แก้ไข'),
+                    child: const Text('แก้ไข'),
                   ),
                   TextButton(
                     onPressed: () {
@@ -149,17 +149,17 @@ class EventCard extends StatelessWidget {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('ยืนยันการลบ'),
-                            content: Text('คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?'),
+                            title: const Text('ยืนยันการลบ'),
+                            content: const Text('คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?'),
                             actions: [
                               TextButton(
-                                child: Text('ยกเลิก'),
+                                child: const Text('ยกเลิก'),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
                               ),
                               TextButton(
-                                child: Text('ลบ'),
+                                child: const Text('ลบ'),
                                 onPressed: () {
                                   onDelete(event.id);
                                   Navigator.of(context).pop();
@@ -170,7 +170,7 @@ class EventCard extends StatelessWidget {
                         },
                       );
                     },
-                    child: Text('ลบ'),
+                    child: const Text('ลบ'),
                   ),
                 ],
               ),

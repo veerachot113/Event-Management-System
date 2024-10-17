@@ -5,7 +5,7 @@ import '../models/event.dart';
 class ParticipantsPage extends StatelessWidget {
   final Event event;
 
-  ParticipantsPage({required this.event});
+  const ParticipantsPage({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +14,13 @@ class ParticipantsPage extends StatelessWidget {
         title: Text('รายชื่อผู้เข้าร่วม: ${event.title}'),
       ),
       body: event.participants.isEmpty
-          ? Center(child: Text('ไม่มีผู้เข้าร่วมกิจกรรมนี้'))
+          ? const Center(child: Text('ไม่มีผู้เข้าร่วมกิจกรรมนี้'))
           : ListView.builder(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               itemCount: event.participants.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  leading: Icon(Icons.person),
+                  leading: const Icon(Icons.person),
                   title: Text('User ID: ${event.participants[index]}'),
                 );
               },

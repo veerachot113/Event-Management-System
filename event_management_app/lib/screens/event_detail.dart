@@ -9,7 +9,7 @@ class EventDetailPage extends StatefulWidget {
   final Event event;
   final Function(Event) onEventUpdated;
 
-  EventDetailPage({required this.event, required this.onEventUpdated});
+  const EventDetailPage({super.key, required this.event, required this.onEventUpdated});
 
   @override
   _EventDetailPageState createState() => _EventDetailPageState();
@@ -76,7 +76,7 @@ Future<void> _joinEvent() async {
   String? userId = prefs.getString('userId');
 
   if (token == null || userId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
     setState(() {
       isLoading = false; // แก้ไขสถานะเมื่อไม่พบ Token หรือ User ID
     });
@@ -89,7 +89,7 @@ Future<void> _joinEvent() async {
     setState(() {
       isLoading = false; // ตั้งสถานะเป็น false เสมอหลังจากดำเนินการเสร็จ
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('เข้าร่วมกิจกรรมสำเร็จ')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('เข้าร่วมกิจกรรมสำเร็จ')));
   } else {
     setState(() {
       isLoading = false;
@@ -108,7 +108,7 @@ Future<void> _cancelJoinEvent() async {
   String? userId = prefs.getString('userId');
 
   if (token == null || userId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ไม่พบ Token หรือ User ID')));
     setState(() {
       isLoading = false; // แก้ไขสถานะเมื่อไม่พบ Token หรือ User ID
     });
@@ -121,7 +121,7 @@ Future<void> _cancelJoinEvent() async {
     setState(() {
       isLoading = false; // ตั้งสถานะเป็น false เสมอหลังจากดำเนินการเสร็จ
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ยกเลิกการเข้าร่วมกิจกรรมสำเร็จ')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ยกเลิกการเข้าร่วมกิจกรรมสำเร็จ')));
   } else {
     setState(() {
       isLoading = false;
@@ -134,11 +134,11 @@ Future<void> _cancelJoinEvent() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('รายละเอียดกิจกรรม'),
+        title: const Text('รายละเอียดกิจกรรม'),
         actions: [
           if (isAdmin) // แสดงปุ่มสำหรับแอดมินเพื่อดูรายชื่อผู้เข้าร่วม
             IconButton(
-              icon: Icon(Icons.people),
+              icon: const Icon(Icons.people),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -163,72 +163,72 @@ Future<void> _cancelJoinEvent() async {
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 event.title,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 event.description,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.place, color: Colors.green),
-                  SizedBox(width: 5),
+                  const Icon(Icons.place, color: Colors.green),
+                  const SizedBox(width: 5),
                   Text(
                     "สถานที่: ${event.location ?? 'ไม่ระบุ'}",
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.date_range, color: Colors.blue),
-                  SizedBox(width: 5),
+                  const Icon(Icons.date_range, color: Colors.blue),
+                  const SizedBox(width: 5),
                   Text(
                     "เริ่ม: ${event.startDate.toLocal().toString().split(' ')[0]}",
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.date_range, color: Colors.red),
-                  SizedBox(width: 5),
+                  const Icon(Icons.date_range, color: Colors.red),
+                  const SizedBox(width: 5),
                   Text(
                     "สิ้นสุด: ${event.endDate.toLocal().toString().split(' ')[0]}",
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.people, color: Colors.blue),
-                  SizedBox(width: 5),
+                  const Icon(Icons.people, color: Colors.blue),
+                  const SizedBox(width: 5),
                   Text(
                     "ผู้เข้าร่วม: ${event.participantCount}",
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Center(
                 child: isLoading
-                    ? CircularProgressIndicator()
+                    ? const CircularProgressIndicator()
                     : ElevatedButton(
                         onPressed: event.isJoined ? _cancelJoinEvent : _joinEvent,
-                        child: Text(event.isJoined ? 'ยกเลิกการเข้าร่วม' : 'เข้าร่วมกิจกรรม'),
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 40),
-                          textStyle: TextStyle(fontSize: 18),
+                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                          textStyle: const TextStyle(fontSize: 18),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
+                        child: Text(event.isJoined ? 'ยกเลิกการเข้าร่วม' : 'เข้าร่วมกิจกรรม'),
                       ),
               ),
             ],
