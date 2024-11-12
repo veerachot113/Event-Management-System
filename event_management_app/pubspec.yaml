@@ -32,10 +32,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.3
+  http: ^1.2.2
   provider: ^6.0.0
-  shared_preferences: ^2.0.0
-  file_picker: ^5.2.3
+  shared_preferences: ^2.0.15
+  file_picker: ^6.1.1 # ระบุเวอร์ชันให้ตรงกับที่รองรับ
+  permission_handler: ^11.0.1 
+
+
+  
 
 
 
@@ -53,7 +57,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

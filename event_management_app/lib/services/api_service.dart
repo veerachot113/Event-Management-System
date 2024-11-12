@@ -6,7 +6,7 @@ import '../models/event.dart';
 import 'dart:typed_data';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8090/api/collections';
+  static const String baseUrl = 'https://men-cow.pockethost.io/api/collections';
 
   // ฟังก์ชันล็อกอิน
 static Future<dynamic> login(String identity, String password) async {
@@ -81,13 +81,14 @@ static Future<dynamic> signUp(String username, String email, String password, St
       request.fields['startDate'] = startDate.toIso8601String();
       request.fields['endDate'] = endDate.toIso8601String();
       request.fields['location'] = location; // ส่งข้อมูล location
-      request.fields['createdBy'] = 'ui5ldqnmu1qt3es'; // แทนที่ด้วย ID ผู้ใช้จริง
+      request.fields['createdBy'] = 'mzhy0sf3zzx27zc'; // แทนที่ด้วย ID ผู้ใช้จริง
 
       if (imageData != null && imageName != null) {
         request.files.add(
           http.MultipartFile.fromBytes('image', imageData, filename: imageName),
         );
       }
+      
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
@@ -135,6 +136,7 @@ static Future<dynamic> signUp(String username, String email, String password, St
           http.MultipartFile.fromBytes('image', imageData, filename: imageName),
         );
       }
+      
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
@@ -170,7 +172,7 @@ static Future<dynamic> signUp(String username, String email, String password, St
               endDate: DateTime.parse(event['endDate']),
               createdBy: event['createdBy'],
               imageUrl: event['image'] != null
-                  ? 'http://127.0.0.1:8090/api/files/events/${event['id']}/${event['image']}'
+                  ? 'https://men-cow.pockethost.io/api/files/events/${event['id']}/${event['image']}'
                   : null,
               participantCount: participants.length,
               isJoined: isJoined,

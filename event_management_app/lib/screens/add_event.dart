@@ -4,7 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 import '../services/api_service.dart';
 import '../models/event.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:permission_handler/permission_handler.dart';
 class AddEventPage extends StatefulWidget {
   final String token;
   final Function(Event) onEventAdded;
@@ -24,18 +25,60 @@ class _AddEventPageState extends State<AddEventPage> {
   Uint8List? _imageData;
   String? _imageName;
 
-  Future<void> _pickImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+
+Future<void> _pickImage() async {
+  try {
+    // ขอสิทธิ์เฉพาะบนมือถือ
+    if (!kIsWeb) {
+      // ตรวจสอบสิทธิ์
+      var status = await Permission.photos.status;
+      if (status.isDenied) {
+        status = await Permission.photos.request();
+        if (status.isDenied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('ต้องการสิทธิ์ในการเข้าถึงรูปภาพ'),
+              action: SnackBarAction(
+                label: 'ตั้งค่า',
+                onPressed: () => openAppSettings(),
+              ),
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    // เลือกรูปภาพ
+    final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      allowMultiple: false,
+      withData: true,
+      allowCompression: true,
+      onFileLoading: (FilePickerStatus status) => print('Status: $status'),
     );
 
-    if (result != null) {
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      print('File picked: ${file.name}');
+      print('File size: ${file.size}');
+
       setState(() {
-        _imageData = result.files.first.bytes;
-        _imageName = result.files.first.name;
+        _imageData = file.bytes;
+        _imageName = file.name;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('เลือกรูปภาพสำเร็จ')),
+      );
     }
+  } catch (e) {
+    print('Error picking image: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('เกิดข้อผิดพลาดในการเลือกรูปภาพ: $e')),
+    );
   }
+}
 
   void addEvent(BuildContext context) async {
     if (selectedStartDateTime == null || selectedEndDateTime == null || locationController.text.isEmpty) {
@@ -68,7 +111,7 @@ class _AddEventPageState extends State<AddEventPage> {
         endDate: DateTime.parse(response['endDate']),
         createdBy: response['createdBy'],
         imageUrl: response['image'] != null
-            ? 'http://127.0.0.1:8090/api/files/events/${response['id']}/${response['image']}'
+            ? 'https://men-cow.pockethost.io/api/files/events/${response['id']}/${response['image']}'
             : null,
         location: response['location'],
       );

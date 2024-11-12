@@ -11,5 +11,6 @@
             "environmentVariable": "JAVA_HOME",
             "value": "c:\\Program Files\\Java\\jdk-22"
         }
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
