@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.event_management_app">
-
+<uses-permission android:name="android.permission.INTERNET" />
 
 <!-- สำหรับ Android 13 ขึ้นไป -->
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
